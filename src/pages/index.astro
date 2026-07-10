@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RunFps - Check Your FPS in Any Game</title>
+  <meta name="description" content="Free PC gaming performance calculator and bottleneck analyzer."/>
+  <link rel="canonical" href="https://runfps.com/"/>
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg"/>
+  <link rel="shortcut icon" href="/favicon/favicon.ico"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="RunFps"/>
+  <link rel="manifest" href="/site.webmanifest"/>
+  <link rel="alternate" hreflang="en" href="https://runfps.com/en/"/>
+  <link rel="alternate" hreflang="de" href="https://runfps.com/de/"/>
+  <link rel="alternate" hreflang="fr" href="https://runfps.com/fr/"/>
+  <link rel="alternate" hreflang="es" href="https://runfps.com/es/"/>
+  <link rel="alternate" hreflang="x-default" href="https://runfps.com/en/"/>
+  <script>
+    var locales = { en: 'en', de: 'de', fr: 'fr', es: 'es' };
+    var lang = (navigator.language || 'en').split('-')[0];
+    var target = locales[lang as keyof typeof locales] || 'en';
+    var langs = navigator.languages || [navigator.language || 'en'];
+    for (var i = 0; i < langs.length; i++) {
+      var code = langs[i].split('-')[0];
+      if (locales[code as keyof typeof locales]) { target = code; break; }
+    }
+    window.location.replace('/' + target + '/');
+  </script>
+</head>
+<body>
+  <p>Redirecting to <a href="/en/">RunFps</a>...</p>
+</body>
+</html>
+

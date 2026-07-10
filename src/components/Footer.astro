@@ -1,0 +1,67 @@
+---
+import { locales, localeLabels } from '../i18n/translations.js';
+import { useTranslations } from '../i18n/utils.js';
+
+export interface Props {
+  currentLocale: string;
+}
+
+const { currentLocale } = Astro.props;
+const { t } = useTranslations(currentLocale);
+const p = (path: string) => `/${currentLocale}${path}`;
+const pathWithoutLocale = Astro.url.pathname.replace(/^\/[^\/]+/, '') || '/';
+---
+
+<footer class="border-t border-hairline dark:border-dark-hairline bg-surface-alt dark:bg-dark-surface-alt mt-auto">
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div>
+        <h2 class="font-display font-semibold text-sm text-ink dark:text-dark-ink mb-3 tracking-tight">{t('footer.tools')}</h2>
+        <ul class="space-y-0 sm:space-y-1.5">
+          <li><a href={p('/calculator')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.fpsCalculator')}</a></li>
+          <li><a href={p('/compare')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.compare')}</a></li>
+          <li><a href={p('/optimizer')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.settingsOptimizer')}</a></li>
+          <li><a href={p('/bottleneck')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.bottleneckCalculator')}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="font-display font-semibold text-sm text-ink dark:text-dark-ink mb-3 tracking-tight">{t('footer.benchmarks')}</h2>
+        <ul class="space-y-0 sm:space-y-1.5">
+          <li><a href={p('/benchmarks/gpu')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.gpuBenchmarks')}</a></li>
+          <li><a href={p('/benchmarks/cpu')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.cpuBenchmarks')}</a></li>
+          <li><a href={p('/games')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.gamesLibrary')}</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="font-display font-semibold text-sm text-ink dark:text-dark-ink mb-3 tracking-tight">{t('footer.language')}</h2>
+        <ul class="space-y-0 sm:space-y-1.5">
+          {locales.map(l => {
+            const href = `/${l}${pathWithoutLocale}`;
+            const isCurrent = l === currentLocale;
+            return (
+              <li><a href={href} class={`block py-2 sm:py-0.5 text-sm no-underline transition-colors duration-120 ${isCurrent ? 'text-ink dark:text-dark-ink font-medium' : 'text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink'}`} hreflang={l}>{localeLabels[l as keyof typeof localeLabels]}</a></li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="font-display font-semibold text-sm text-ink dark:text-dark-ink mb-3 tracking-tight">{t('footer.company')}</h2>
+        <ul class="space-y-0 sm:space-y-1.5">
+          <li><a href={p('/faq')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.faq')}</a></li>
+          <li><a href={p('/about')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.about')}</a></li>
+          <li><a href={p('/privacy')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.privacyPolicy')}</a></li>
+          <li><a href={p('/terms')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.termsOfService')}</a></li>
+          <li><a href={p('/contact')} class="block py-2 sm:py-0.5 text-sm text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink no-underline transition-colors duration-120">{t('footer.contactUs')}</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-8 pt-6 border-t border-hairline dark:border-dark-hairline text-center">
+      <p class="text-xs text-mid-gray dark:text-dark-mid-gray leading-relaxed max-w-2xl mx-auto">
+        {t('footer.disclaimer', { year: new Date().getFullYear() })}
+      </p>
+    </div>
+  </div>
+</footer>
+

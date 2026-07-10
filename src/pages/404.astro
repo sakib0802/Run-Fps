@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
+import { translations, locales } from '../i18n/translations.js';
+
+const fallback = translations.en.notFound;
+const allLocales = locales;
+---
+
+<Layout title={fallback.title} description={fallback.description}>
+<script type="application/json" id="notfound-i18n" set:html={JSON.stringify(Object.fromEntries(locales.map(l => [l, (translations[l as keyof typeof translations] || translations.en).notFound])))}></script>
+<script type="application/json" id="notfound-locales" set:html={JSON.stringify(locales)}></script>
+  <div class="flex flex-col items-center justify-center py-16 sm:py-24 text-center">
+    <div class="w-16 h-16 rounded-full bg-ember/10 flex items-center justify-center mb-4">
+      <Icon name="lucide:search-x" size={28} class="text-ember" />
+    </div>
+    <h1 id="nf-heading" class="font-display text-4xl sm:text-5xl font-semibold text-ink dark:text-dark-ink tracking-tight">{fallback.heading}</h1>
+    <p id="nf-text" class="mt-2 text-sm text-mid-gray dark:text-dark-mid-gray">{fallback.text}</p>
+    <div class="mt-6 flex flex-col sm:flex-row items-center gap-3">
+      <a id="nf-home" href="/en/" class="inline-flex items-center gap-2 px-5 py-2.5 bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas rounded-pill text-sm font-medium no-underline hover:scale-[1.02] transition-all duration-120">{fallback.goHome}</a>
+      <a id="nf-fps" href="/en/calculator" class="inline-flex items-center gap-2 px-5 py-2.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink rounded-pill text-sm font-medium no-underline border border-hairline dark:border-dark-hairline hover:scale-[1.02] transition-all duration-120">{fallback.checkFps}</a>
+    </div>
+    <div class="mt-8 flex items-center gap-2 text-xs text-mid-gray dark:text-dark-mid-gray">
+      <span id="nf-lang-label">Also available in:</span>
+      {allLocales.map(l => (
+        <a href={`/${l}/`} class="underline underline-offset-2 hover:text-ink dark:hover:text-dark-ink transition-colors duration-120" hreflang={l}>{l.toUpperCase()}</a>
+      ))}
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var i18n;
+    try { i18n = JSON.parse(document.getElementById('notfound-i18n')!.textContent); } catch(e) { return; }
+    var path = window.location.pathname;
+    var seg = path.split('/').filter(Boolean);
+    var locale = seg.length > 0 && ['en','de','fr','es'].includes(seg[0]) ? seg[0] : 'en';
+    var t = i18n[locale] || i18n.en;
+    var heading = document.getElementById('nf-heading');
+    var text = document.getElementById('nf-text');
+    var homeLink = document.getElementById('nf-home') as HTMLAnchorElement | null;
+    var fpsLink = document.getElementById('nf-fps') as HTMLAnchorElement | null;
+    var langLabel = document.getElementById('nf-lang-label');
+    if (heading) heading.textContent = t.heading;
+    if (text) text.textContent = t.text;
+    if (homeLink) { homeLink.textContent = t.goHome; homeLink.href = '/' + locale + '/'; }
+    if (fpsLink) { fpsLink.textContent = t.checkFps; fpsLink.href = '/' + locale + '/calculator'; }
+    if (langLabel) {
+      var labels = { en: 'Also available in:', de: 'Auch verfügbar auf:', fr: 'Aussi disponible en:', es: 'También disponible en:' };
+      langLabel.textContent = labels[locale as keyof typeof labels] || labels.en;
+    }
+  })();
+  </script>
+</Layout>
+

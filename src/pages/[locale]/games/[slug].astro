@@ -1,0 +1,158 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { useTranslations, locales } from '../../../i18n/utils.js';
+import gamesData from '../../../data/games.json';
+import { genreLabels } from '../../../data/genres.js';
+import { getProfile } from '../../../data/profiles.js';
+import { profileTranslations } from '../../../data/profiles-i18n.js';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const locale of locales) {
+    for (const game of gamesData.games) {
+      paths.push({ params: { locale, slug: game.id }, props: { game } });
+    }
+  }
+  return paths;
+}
+
+const { locale } = Astro.params;
+const { game } = Astro.props;
+const { t } = useTranslations(locale);
+const profile = getProfile(game.id);
+const localizedProfile = locale !== 'en'
+  ? profileTranslations[game.id as keyof typeof profileTranslations]?.[locale as keyof typeof profileTranslations[keyof typeof profileTranslations]] ?? null
+  : null;
+
+const tiers = [
+  { name: t('games.detail.budget'), score: 65, gpu: "RTX 3060", cpu: "Ryzen 5 5600X" },
+  { name: t('games.detail.mid'), score: 72, gpu: "RTX 4060", cpu: "Ryzen 5 7600X" },
+  { name: t('games.detail.high'), score: 82, gpu: "RTX 4070 Super", cpu: "Ryzen 7 7800X3D" },
+  { name: t('games.detail.enthusiast'), score: 92, gpu: "RTX 4080 Super", cpu: "Ryzen 9 7950X3D" },
+  { name: t('games.detail.ultra'), score: 100, gpu: "RTX 5090", cpu: "Core Ultra 9 285K" },
+];
+
+function getFpsAtScore(curve: { gpuScore: number; fps: number }[], score: number) {
+  for (let i = 0; i < curve.length - 1; i++) {
+    if (score >= curve[i].gpuScore && score <= curve[i + 1].gpuScore) {
+      const t = (score - curve[i].gpuScore) / (curve[i + 1].gpuScore - curve[i].gpuScore);
+      return Math.round(curve[i].fps + t * (curve[i + 1].fps - curve[i].fps));
+    }
+  }
+  return score <= curve[0].gpuScore ? curve[0].fps : curve[curve.length - 1].fps;
+}
+
+const genreLabel = genreLabels[game.genre] || game.genre;
+const curve = game.performanceCurve;
+---
+
+<Layout title={t('games.detail.title', { game: game.title })} description={t('games.detail.description', { game: game.title, ram: game.ramRequirement, vram: game.vramRequirement })}>
+
+<div class="py-6">
+  <div class="flex items-center gap-3 flex-wrap">
+    <span class={`badge badge-${game.genre}`}>{genreLabel}</span>
+    <span class={`badge capitalize ${game.optimizationTier === 'light' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : game.optimizationTier === 'medium' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'}`}>{game.optimizationTier}</span>
+    {game.steamDeck && <span class="badge bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">&#10003; {t('games.detail.steamDeck')}</span>}
+    {game.dlss && <span class="badge bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">DLSS</span>}
+    {game.fsr && <span class="badge bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">FSR</span>}
+  </div>
+
+  <h1 class="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.03em] text-ink dark:text-dark-ink leading-[1.1]">{game.title}</h1>
+  <p class="mt-2 text-mid-gray dark:text-dark-mid-gray text-sm">{game.developer} &middot; {game.releaseYear}</p>
+
+  <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+      <div class="card">
+        <h2 class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{t('games.detail.fpsEstimates')}</h2>
+        <p class="mt-1 text-xs text-mid-gray dark:text-dark-mid-gray font-mono">{t('games.detail.estimatedFps')}</p>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-hairline dark:border-dark-hairline">
+                <th class="text-left py-2 pr-4 font-mono text-xs text-mid-gray dark:text-dark-mid-gray uppercase tracking-wider">{t('games.detail.tier')}</th>
+                <th class="text-left py-2 px-4 font-mono text-xs text-mid-gray dark:text-dark-mid-gray uppercase tracking-wider">{t('games.detail.hardware')}</th>
+                <th class="text-right py-2 px-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray uppercase tracking-wider">{t('games.detail.low')}</th>
+                <th class="text-right py-2 px-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray uppercase tracking-wider">{t('games.detail.med')}</th>
+                <th class="text-right py-2 px-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray uppercase tracking-wider">{t('games.detail.high')}</th>
+                <th class="text-right py-2 pl-4 font-mono text-xs text-mid-gray dark:text-dark-mid-gray uppercase tracking-wider">{t('games.detail.ultra')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tiers.map((tier) => {
+                const fpsHigh = getFpsAtScore(curve, tier.score);
+                const fpsLow = Math.round(fpsHigh * 1.4);
+                const fpsMed = Math.round(fpsHigh * 1.15);
+                const fpsUltra = Math.round(fpsHigh * 0.7);
+                return (
+                  <tr class="border-b border-hairline dark:border-dark-hairline">
+                    <td class="py-2 pr-4 font-medium text-ink dark:text-dark-ink whitespace-nowrap">{tier.name}</td>
+                    <td class="py-2 px-4 text-mid-gray dark:text-dark-mid-gray text-xs font-mono whitespace-nowrap">{tier.gpu} / {tier.cpu}</td>
+                    <td class="text-right py-2 px-2 font-mono text-ink dark:text-dark-ink">{fpsLow}</td>
+                    <td class="text-right py-2 px-2 font-mono text-ink dark:text-dark-ink">{fpsMed}</td>
+                    <td class="text-right py-2 px-2 font-mono text-ink dark:text-dark-ink font-semibold">{fpsHigh}</td>
+                    <td class="text-right py-2 pl-4 font-mono text-ink dark:text-dark-ink">{fpsUltra}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2 class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{t('games.detail.systemRequirements')}</h2>
+        <div class="mt-3 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('games.detail.ram')}</span>
+            <span class="text-sm font-mono font-medium text-ink dark:text-dark-ink">{game.ramRequirement} GB</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('games.detail.vram')}</span>
+            <span class="text-sm font-mono font-medium text-ink dark:text-dark-ink">{game.vramRequirement} GB</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('games.detail.genre')}</span>
+            <span class="text-sm font-mono font-medium text-ink dark:text-dark-ink">{genreLabel}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('games.detail.developer')}</span>
+            <span class="text-sm font-mono font-medium text-ink dark:text-dark-ink">{game.developer}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('games.detail.releaseYear')}</span>
+            <span class="text-sm font-mono font-medium text-ink dark:text-dark-ink">{game.releaseYear}</span>
+          </div>
+        </div>
+      </div>
+
+      {(profile || localizedProfile) && (
+        <div class="card mt-4">
+          <div class="flex items-baseline justify-between gap-2">
+            <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink">{(localizedProfile || profile).title}</h2>
+            <span class="text-xs font-mono text-ember shrink-0">{(localizedProfile || profile).target}</span>
+          </div>
+          <p class="mt-1 text-xs text-mid-gray dark:text-dark-mid-gray leading-relaxed">{(localizedProfile || profile).focus}</p>
+          <ul class="mt-3 space-y-1.5">
+            {(localizedProfile || profile).tips.map((tip: string | { text: string; impact: string }) => (
+              <li class="flex items-start justify-between gap-3 text-sm">
+                {typeof tip === 'string' ? (
+                  <span class="text-ink dark:text-dark-ink leading-snug">{tip}</span>
+                ) : (
+                  <>
+                    <span class="text-ink dark:text-dark-ink leading-snug">{tip.text}</span>
+                    <span class="shrink-0 font-mono text-xs text-mid-gray dark:text-dark-mid-gray">{tip.impact}</span>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
+</Layout>
+

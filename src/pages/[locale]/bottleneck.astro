@@ -1,0 +1,251 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
+import { useTranslations, locales } from '../../i18n/utils.js';
+import gpusData from '../../data/gpus.json';
+import cpusData from '../../data/cpus.json';
+import gamesData from '../../data/games.json';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+const ui = {
+  searchCpu: t('bottleneck.searchCpu'),
+  searchGpu: t('bottleneck.searchGpu'),
+  searchGame: t('bottleneck.searchGame'),
+  selectCpu: t('bottleneck.selectCpu'),
+  selectGpu: t('bottleneck.selectGpu'),
+  selectGame: t('bottleneck.selectGame'),
+  analyze: t('bottleneck.analyze'),
+  bottleneckAt: t('bottleneck.bottleneckAt', { resolution: '{r}' }),
+  utilizationBalance: t('bottleneck.utilizationBalance'),
+  fpsEstimate: t('bottleneck.fpsEstimate'),
+  fps: t('misc.fps'),
+  emptyState: t('bottleneck.emptyState')
+};
+---
+
+<Layout title={t('bottleneck.title')} description={t('bottleneck.description')}>
+<script is:inline src="/engine.js" type="module"></script>
+
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+  <div class="lg:col-span-2">
+    <div class="card space-y-3">
+      <h1 class="font-display text-xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('bottleneck.heading')}</h1>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('bottleneck.subtitle')}</p>
+      <div>
+        <label for="cpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('bottleneck.cpu')}</label>
+        <input type="text" id="cpu-search" placeholder={t('bottleneck.searchCpu')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+        <select id="cpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+      </div>
+      <div>
+        <label for="gpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('bottleneck.gpu')}</label>
+        <input type="text" id="gpu-search" placeholder={t('bottleneck.searchGpu')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+        <select id="gpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+      </div>
+      <div>
+        <label for="game" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('bottleneck.game')}</label>
+        <input type="text" id="game-search" placeholder={t('bottleneck.searchGame')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+        <select id="game" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+      </div>
+      <div>
+        <label for="resolution" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('bottleneck.resolution')}</label>
+        <select id="resolution" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+          <option value="720p">720p</option>
+          <option value="800p">800p</option>
+          <option value="1080p" selected>1080p</option>
+          <option value="1440p">1440p</option>
+          <option value="4K">4K</option>
+        </select>
+      </div>
+      <button id="calc-btn" class="w-full py-3 bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas rounded-pill text-sm font-medium cursor-pointer border-0 hover:scale-[1.02] transition-all duration-120">
+        {ui.analyze}
+      </button>
+    </div>
+  </div>
+
+  <div class="lg:col-span-3">
+    <div id="results-placeholder">
+      <div id="bn-skeleton" role="status" aria-live="polite" class="card space-y-4 p-6">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text" style="width:70%"></div>
+        <div class="skeleton skeleton-bar"></div>
+        <div class="skeleton skeleton-bar"></div>
+      </div>
+      <div id="bn-empty" class="card flex flex-col items-center justify-center py-16 text-center hidden">
+        <Icon name="lucide:gauge" size={48} class="text-hairline dark:text-dark-hairline mb-4" />
+        <p class="text-mid-gray dark:text-dark-mid-gray text-sm">{ui.emptyState}</p>
+      </div>
+    </div>
+
+    <div id="results" class="hidden space-y-4" aria-live="polite" tabindex="-1">
+      <div class="card text-center">
+        <div id="bottleneck-label" class="text-xs font-mono text-mid-gray dark:text-dark-mid-gray mb-1">{ui.bottleneckAt.split('{r}')[0]}<span id="bn-resolution" class="font-semibold">1080p</span></div>
+        <div id="bottleneck-type" class="font-display text-4xl font-semibold text-ink dark:text-dark-ink tracking-[-0.03em]">--</div>
+        <div id="bottleneck-pct" class="font-mono text-lg text-mid-gray dark:text-dark-mid-gray mt-1">0%</div>
+      </div>
+
+      <div class="card">
+        <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-4">{ui.utilizationBalance}</h2>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs font-mono mb-1">
+              <span class="text-ink dark:text-dark-ink">CPU Load</span>
+              <span id="cpu-load-pct" class="text-mid-gray dark:text-dark-mid-gray">0%</span>
+            </div>
+            <div class="h-3 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+              <div id="cpu-bar" class="h-full bg-ink dark:bg-dark-ink rounded-full transition-all duration-700" style="width:0%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-mono mb-1">
+              <span class="text-ink dark:text-dark-ink">GPU Load</span>
+              <span id="gpu-load-pct" class="text-mid-gray dark:text-dark-mid-gray">0%</span>
+            </div>
+            <div class="h-3 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+              <div id="gpu-bar" class="h-full bg-mid-gray dark:bg-dark-mid-gray rounded-full transition-all duration-700" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-3">{ui.fpsEstimate}</h2>
+        <div class="flex items-center justify-center gap-4 py-4">
+          <div class="text-center">
+            <div id="bn-fps-number" class="font-display text-5xl font-semibold text-ink dark:text-dark-ink tracking-[-0.03em]">--</div>
+            <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mt-1">{ui.fps}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="bn-gpus-data" set:html={JSON.stringify(gpusData.gpus)}></script>
+<script type="application/json" id="bn-cpus-data" set:html={JSON.stringify(cpusData.cpus)}></script>
+<script type="application/json" id="bn-games-data" set:html={JSON.stringify(gamesData.games)}></script>
+<script type="application/json" id="bn-i18n" set:html={JSON.stringify(ui)}></script>
+
+<script type="module">
+function fuzzyMatch(text, query) {
+  text = text.toLowerCase();
+  query = query.toLowerCase().trim();
+  if (!query) return true;
+  let qi = 0;
+  for (let ti = 0; ti < text.length && qi < query.length; ti++) {
+    if (text[ti] === query[qi]) qi++;
+  }
+  return qi === query.length;
+}
+
+function setupFilteredSelect(inputId, selectId, items, labelKey) {
+  const input = document.getElementById(inputId);
+  const select = document.getElementById(selectId);
+  if (!input || !select) return;
+
+  input.addEventListener('input', () => {
+    const query = input.value;
+    const selectedValue = select.value;
+
+    select.innerHTML = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => fuzzyMatch(item[labelKey], query))
+      .map(({ item, index }) => `<option value="${index}">${item[labelKey]}</option>`)
+      .join('');
+
+    if (selectedValue && items[parseInt(selectedValue, 10)]) {
+      const stillVisible = [...select.options].some(o => o.value === selectedValue);
+      if (stillVisible) select.value = selectedValue;
+    }
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && select.options.length > 0) {
+      select.value = select.options[0].value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+}
+const i18n = JSON.parse(document.getElementById('bn-i18n').textContent);
+
+const $ = (id) => document.getElementById(id);
+
+let gpus = [], cpus = [], games = [];
+
+async function loadData() {
+  gpus = JSON.parse(document.getElementById('bn-gpus-data').textContent);
+  cpus = JSON.parse(document.getElementById('bn-cpus-data').textContent);
+  games = JSON.parse(document.getElementById('bn-games-data').textContent);
+}
+
+(async () => {
+  await loadData();
+  populateSelect('gpu', gpus, 'name', i18n.selectGpu);
+  populateSelect('cpu', cpus, 'name', i18n.selectCpu);
+  populateSelect('game', games, 'title', i18n.selectGame);
+  setupFilteredSelect('gpu-search', 'gpu', gpus, 'name');
+  setupFilteredSelect('cpu-search', 'cpu', cpus, 'name');
+  setupFilteredSelect('game-search', 'game', games, 'title');
+
+  $('bn-skeleton')?.classList.add('hidden');
+  $('bn-empty')?.classList.remove('hidden');
+
+  $('calc-btn')?.addEventListener('click', calculate);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && gpus.length > 0) calculate();
+  });
+})();
+
+function populateSelect(selectId, items, labelKey, placeholder) {
+  const sel = $(selectId);
+  if (!sel) return;
+  sel.innerHTML = `<option value="">${placeholder}</option>` + items.map((item, i) => `<option value="${i}">${item[labelKey]}</option>`).join('');
+}
+
+function getSelectedValue(selectId, items) {
+  const sel = $(selectId);
+  return sel && sel.value !== '' ? items[parseInt(sel.value, 10)] : null;
+}
+
+function calculate() {
+  const gpu = getSelectedValue('gpu', gpus);
+  const cpu = getSelectedValue('cpu', cpus);
+  const game = getSelectedValue('game', games);
+  const resolution = $('resolution')?.value || '1080p';
+  if (!gpu || !cpu || !game) return;
+
+  const config = { ramCapacity: 16, ramType: 'ddr5', ramSpeed: 6000, ramChannel: 'dual', storage: 'nvme', resolution, preset: 'high', rtEnabled: false, upscaling: 'none', resolutionScale: 100, frameCap: 0, monitorHz: 144, vramLimit: 0, os: 'windows' };
+  const result = window.RunFpsEngine.calculateFPS(config, game, gpu, cpu);
+
+  $('results-placeholder')?.classList.add('hidden');
+  const resultsEl = $('results');
+  resultsEl.classList.remove('hidden');
+  resultsEl.focus();
+  $('bn-resolution').textContent = resolution;
+  $('bottleneck-type').textContent = result.bottleneck + ' Bottleneck';
+  $('bottleneck-pct').textContent = `${result.bottleneckPercent}%`;
+  animateBar('cpu-bar', result.cpuLoad);
+  animateBar('gpu-bar', result.gpuLoad);
+  $('cpu-load-pct').textContent = `${result.cpuLoad}%`;
+  $('gpu-load-pct').textContent = `${result.gpuLoad}%`;
+  $('bn-fps-number').textContent = result.avgFps;
+}
+
+function animateBar(barId, value) {
+  const bar = $(barId);
+  if (bar) {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    bar.offsetHeight;
+    bar.style.transition = 'width 700ms ease-out';
+    bar.style.width = `${Math.min(100, value)}%`;
+  }
+}
+</script>
+
+</Layout>
+

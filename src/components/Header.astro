@@ -1,0 +1,165 @@
+---
+import DarkModeToggle from './DarkModeToggle.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import { Icon } from 'astro-icon/components';
+import { useTranslations } from '../i18n/utils.js';
+
+export interface Props {
+  currentLocale: string;
+}
+
+const { currentLocale } = Astro.props;
+const { t } = useTranslations(currentLocale);
+const p = (path: string) => `/${currentLocale}${path}`;
+---
+
+<header class="sticky top-0 z-40 bg-paper/80 backdrop-blur-md border-b border-hairline dark:bg-dark-paper/80 dark:border-dark-hairline supports-[backdrop-filter]:bg-paper/80">
+  <nav class="max-w-[1280px] mx-auto flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
+    <a href={p('/')} class="flex items-center gap-2 no-underline shrink-0">
+      <span class="font-display text-xl font-semibold tracking-tight text-ink dark:text-dark-ink">RunFps</span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="hidden sm:flex items-center gap-0.5 sm:gap-1">
+      <a href={p('/calculator')} class="px-3 py-2 text-sm font-body font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 no-underline whitespace-nowrap">{t('nav.calculator')}</a>
+      <a href={p('/optimizer')} class="px-3 py-2 text-sm font-body font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 no-underline whitespace-nowrap">{t('nav.optimizer')}</a>
+      <a href={p('/bottleneck')} class="px-3 py-2 text-sm font-body font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 no-underline whitespace-nowrap">{t('nav.bottleneck')}</a>
+      <a href={p('/benchmarks/gpu')} class="px-3 py-2 text-sm font-body font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 no-underline whitespace-nowrap">{t('nav.benchmarks')}</a>
+      <a href={p('/games')} class="px-3 py-2 text-sm font-body font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 no-underline whitespace-nowrap">{t('nav.games')}</a>
+      <a href={p('/compare')} class="px-3 py-2 text-sm font-body font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 no-underline whitespace-nowrap">{t('nav.compare')}</a>
+      <a href={p('/faq')} class="px-3 py-2 text-sm font-body font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 no-underline whitespace-nowrap">{t('nav.faq')}</a>
+      <LanguageSwitcher currentLocale={currentLocale} />
+      <DarkModeToggle currentLocale={currentLocale} />
+    </div>
+
+    <!-- Mobile: lang + dark toggle + hamburger -->
+    <div class="flex sm:hidden items-center gap-1">
+      <LanguageSwitcher currentLocale={currentLocale} />
+      <DarkModeToggle currentLocale={currentLocale} />
+      <button id="menu-btn" class="w-10 h-10 flex items-center justify-center rounded-pill text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink hover:bg-hairline/50 dark:hover:bg-dark-hairline/50 transition-all duration-120 cursor-pointer" aria-label={t('nav.openMenu')} aria-expanded="false" aria-controls="mobile-menu">
+        <span id="menu-icon-open" class="block"><Icon name="lucide:menu" size={22} /></span>
+        <span id="menu-icon-close" class="hidden"><Icon name="lucide:x" size={22} /></span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- Mobile menu panel -->
+<div id="mobile-menu" class="fixed inset-0 z-50 sm:hidden hidden" role="dialog" aria-modal="true" aria-label="Navigation menu">
+  <div id="menu-overlay" class="absolute inset-0 bg-black/50 dark:bg-black/60 transition-opacity duration-200 opacity-0 pointer-events-none"></div>
+  <div id="menu-panel" class="absolute top-0 left-0 w-full bg-white dark:bg-[#171717] shadow-lg transition-transform duration-200 -translate-y-full">
+    <div class="max-w-[1280px] mx-auto px-4 py-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-semibold tracking-widest uppercase text-mid-gray dark:text-dark-mid-gray">{t('nav.navigate')}</span>
+        <button id="menu-close-btn" class="w-7 h-7 flex items-center justify-center rounded-full text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink hover:bg-hairline/60 dark:hover:bg-dark-hairline/60 transition-colors duration-120 cursor-pointer" aria-label={t('nav.closeMenu')}>
+          <Icon name="lucide:x" size={15} />
+        </button>
+      </div>
+      <nav class="px-4">
+        <a href={p('/calculator')} class="block px-3 py-2 rounded-lg text-sm font-medium text-ink dark:text-dark-ink hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline border-b border-gray-200 dark:border-gray-700 last-of-type:border-b-0">{t('nav.fpsCalculator')}</a>
+        <a href={p('/optimizer')} class="block px-3 py-2 rounded-lg text-sm font-medium text-ink dark:text-dark-ink hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline border-b border-gray-200 dark:border-gray-700 last-of-type:border-b-0">{t('nav.settingsOptimizer')}</a>
+        <a href={p('/bottleneck')} class="block px-3 py-2 rounded-lg text-sm font-medium text-ink dark:text-dark-ink hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline border-b border-gray-200 dark:border-gray-700 last-of-type:border-b-0">{t('nav.bottleneck')}</a>
+        <a href={p('/benchmarks/gpu')} class="block px-3 py-2 rounded-lg text-sm font-medium text-ink dark:text-dark-ink hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline border-b border-gray-200 dark:border-gray-700 last-of-type:border-b-0">{t('nav.benchmarks')}</a>
+        <a href={p('/games')} class="block px-3 py-2 rounded-lg text-sm font-medium text-ink dark:text-dark-ink hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline border-b border-gray-200 dark:border-gray-700 last-of-type:border-b-0">{t('nav.games')}</a>
+        <a href={p('/compare')} class="block px-3 py-2 rounded-lg text-sm font-medium text-ink dark:text-dark-ink hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline border-b border-gray-200 dark:border-gray-700 last-of-type:border-b-0">{t('nav.compare')}</a>
+        <a href={p('/faq')} class="block px-3 py-2 rounded-lg text-sm font-medium text-ink dark:text-dark-ink hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline">{t('nav.faq')}</a>
+        <a href={p('/privacy')} class="block px-3 py-2 rounded-lg text-sm font-medium text-mid-gray dark:text-dark-mid-gray hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline border-t border-gray-200 dark:border-gray-700">{t('nav.privacy')}</a>
+        <a href={p('/terms')} class="block px-3 py-2 rounded-lg text-sm font-medium text-mid-gray dark:text-dark-mid-gray hover:bg-ember/5 dark:hover:bg-ember/5 hover:text-ember dark:hover:text-ember transition-colors duration-120 no-underline">{t('nav.terms')}</a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('menu-btn')!;
+  var closeBtn = document.getElementById('menu-close-btn');
+  var menu = document.getElementById('mobile-menu')!;
+  var overlay = document.getElementById('menu-overlay')!;
+  var panel = document.getElementById('menu-panel')!;
+  var openIcon = document.getElementById('menu-icon-open')!;
+  var closeIcon = document.getElementById('menu-icon-close')!;
+
+  if (!btn || !menu || !panel) return;
+
+  var lastFocused: HTMLElement | null = null;
+  function getFocusable(el: HTMLElement) {
+    return el.querySelectorAll<HTMLElement>('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  }
+
+  function trapFocus(e: KeyboardEvent) {
+    var focusable = getFocusable(menu);
+    if (focusable.length === 0) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  function open() {
+    lastFocused = document.activeElement as HTMLElement | null;
+    menu.classList.remove('hidden');
+    requestAnimationFrame(function() {
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      overlay.classList.add('opacity-100', 'pointer-events-auto');
+      panel.classList.remove('-translate-y-full');
+      var focusable = getFocusable(menu);
+      if (focusable.length > 0) setTimeout(function() { focusable[0].focus(); }, 50);
+    });
+    btn.setAttribute('aria-expanded', 'true');
+    openIcon.classList.add('hidden');
+    closeIcon.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', trapFocus);
+  }
+
+  function close() {
+    overlay.classList.remove('opacity-100', 'pointer-events-auto');
+    overlay.classList.add('opacity-0', 'pointer-events-none');
+    panel.classList.add('-translate-y-full');
+    setTimeout(function() {
+      menu.classList.add('hidden');
+    }, 200);
+    btn.setAttribute('aria-expanded', 'false');
+    openIcon.classList.remove('hidden');
+    closeIcon.classList.add('hidden');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', trapFocus);
+    const el = lastFocused;
+    if (el) setTimeout(function() { el.focus(); }, 50);
+  }
+
+  if (!window._rtHeaderInit) {
+    window._rtHeaderInit = true;
+
+    btn.addEventListener('click', function() {
+      var isOpen = btn.getAttribute('aria-expanded') === 'true';
+      if (isOpen) close(); else open();
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', close);
+    }
+
+    if (overlay) {
+      overlay.addEventListener('click', close);
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') close();
+    });
+
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 640 && btn.getAttribute('aria-expanded') === 'true') close();
+    });
+
+
+  }
+})();
+</script>
+

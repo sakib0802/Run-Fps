@@ -1,0 +1,40 @@
+---
+import { Icon } from 'astro-icon/components';
+import { useTranslations } from '../i18n/utils.js';
+
+export interface Props {
+  locale: string;
+}
+
+const { locale } = Astro.props;
+const { t } = useTranslations(locale);
+const p = (path: string) => `/${locale}${path}`;
+
+const features = [
+  { href: '/calculator', icon: 'lucide:calculator', titleKey: 'home.featureCalcTitle', descKey: 'home.featureCalcDesc' },
+  { href: '/optimizer', icon: 'lucide:sliders-horizontal', titleKey: 'home.featureOptTitle', descKey: 'home.featureOptDesc' },
+  { href: '/bottleneck', icon: 'lucide:arrow-up-down', titleKey: 'home.featureBottleneckTitle', descKey: 'home.featureBottleneckDesc' },
+  { href: '/games', icon: 'lucide:gamepad-2', titleKey: 'home.featureGamesTitle', descKey: 'home.featureGamesDesc' },
+  { href: '/benchmarks/gpu', icon: 'lucide:trending-up', titleKey: 'home.featureBenchTitle', descKey: 'home.featureBenchDesc' },
+  { href: '/compare', icon: 'lucide:swords', titleKey: 'home.featureCompTitle', descKey: 'home.featureCompDesc' }
+];
+---
+
+<section class="py-8 sm:py-14">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {features.map(feature => (
+      <a href={p(feature.href)} class="card group no-underline block">
+        <div class="flex items-start gap-4">
+          <div class="shrink-0 w-10 h-10 rounded-pill bg-canvas dark:bg-dark-canvas flex items-center justify-center group-hover:bg-ember/10 dark:group-hover:bg-ember/10 transition-colors duration-120">
+            <Icon name={feature.icon} size={20} class="text-ink dark:text-dark-ink group-hover:text-ember transition-colors duration-120" />
+          </div>
+          <div class="min-w-0">
+            <h3 class="font-display font-medium text-base text-ink dark:text-dark-ink group-hover:text-ember dark:group-hover:text-dark-ink transition-colors duration-120">{t(feature.titleKey)}</h3>
+            <p class="mt-1 text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t(feature.descKey)}</p>
+          </div>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>
+

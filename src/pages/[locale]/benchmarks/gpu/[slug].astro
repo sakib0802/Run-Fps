@@ -1,0 +1,119 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import { useTranslations, locales } from '../../../../i18n/utils.js';
+import { gpus } from '../../../../data/gpus.json';
+import { games } from '../../../../data/games.json';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const locale of locales) {
+    for (const gpu of gpus) {
+      paths.push({ params: { locale, slug: gpu.id }, props: { gpu } });
+    }
+  }
+  return paths;
+}
+
+const { locale } = Astro.params;
+const { gpu } = Astro.props;
+const { t } = useTranslations(locale);
+const topGames = games.slice(0, 10);
+---
+
+<Layout title={`${gpu.name} - ${t('benchmarks.gpu.title')}`} description={`${gpu.name} ${t('misc.estimatedFps')} ${topGames.length} games.`}>
+<script is:inline src="/engine.js" type="module"></script>
+
+<script type="application/json" id="games-data" set:html={JSON.stringify(topGames)}></script>
+<script type="application/json" id="gpu-data" set:html={JSON.stringify(gpu)}></script>
+
+<div class="space-y-6">
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{gpu.name}</h1>
+        <p class="text-sm text-mid-gray dark:text-dark-mid-gray">{gpu.brand} &middot; {gpu.generation} &middot; {t('misc.estimatedFps')} {gpu.launchYear}</p>
+      </div>
+      <span class="badge text-xs" class:list={[gpu.brand === 'nvidia' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : gpu.brand === 'amd' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200']}>{gpu.brand}</span>
+    </div>
+
+    <div class="mb-4">
+      <div class="flex justify-between text-sm font-mono mb-1">
+        <span class="text-mid-gray dark:text-dark-mid-gray">{t('benchmarks.gpu.performanceScore')}</span>
+        <span class="text-ink dark:text-dark-ink font-semibold">{gpu.score}/100</span>
+      </div>
+      <div class="h-3 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all" style={`width:${gpu.score}%`} class:list={[gpu.score >= 80 ? 'bg-emerald-500' : gpu.score >= 60 ? 'bg-amber-500' : gpu.score >= 40 ? 'bg-orange-500' : 'bg-red-500']}></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{gpu.vram} GB</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">{t('benchmarks.gpu.vram')}</div>
+      </div>
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{gpu.tdp}W</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">{t('benchmarks.gpu.tdp')}</div>
+      </div>
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{gpu.launchYear}</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">{t('benchmarks.gpu.launchYear')}</div>
+      </div>
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{gpu.tier}</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">{t('benchmarks.gpu.tier')}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="font-display text-lg font-semibold text-ink dark:text-dark-ink mb-4">{t('misc.estimatedFps')} {topGames.length} Popular Games</h2>
+    <p class="text-xs text-mid-gray dark:text-dark-mid-gray mb-4 font-mono">Calculated using an AMD Ryzen 7 7800X3D, 16GB DDR5-6000, NVMe at High preset.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-hairline dark:border-dark-hairline">
+            <th scope="col" class="text-left py-2 pr-4 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">Game</th>
+            <th scope="col" class="text-right px-2 py-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">1080p</th>
+            <th scope="col" class="text-right px-2 py-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">1440p</th>
+            <th scope="col" class="text-right px-2 py-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">4K</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topGames.map((game, i) => (
+            <tr class="border-b border-hairline dark:border-dark-hairline">
+              <td class="py-2 pr-4 text-ink dark:text-dark-ink font-medium">{game.title}</td>
+              <td id={"fps-1080p-" + i} class="text-right px-2 py-2 font-mono text-ink dark:text-dark-ink">--</td>
+              <td id={"fps-1440p-" + i} class="text-right px-2 py-2 font-mono text-ink dark:text-dark-ink">--</td>
+              <td id={"fps-4k-" + i} class="text-right px-2 py-2 font-mono text-ink dark:text-dark-ink">--</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(async function() {
+  const gpu = JSON.parse(document.getElementById('gpu-data')!.textContent ?? '');
+  const games: any[] = JSON.parse(document.getElementById('games-data')!.textContent ?? '');
+  const engine = window.RunFpsEngine;
+  if (!engine) return;
+  const config = { ramCapacity: 16, ramType: 'ddr5', ramSpeed: 6000, ramChannel: 'dual', storage: 'nvme', resolution: '1080p', preset: 'high', rtEnabled: false, upscaling: 'none', resolutionScale: 100, frameCap: 0, monitorHz: 144, vramLimit: 0, os: 'windows' };
+  const refCpu = { id: 'ryzen-7-7800x3d', name: 'Ryzen 7 7800X3D', brand: 'amd', score: 92 };
+  games.forEach((game, i) => {
+    const resolutions = ['1080p', '1440p', '4K'];
+    resolutions.forEach(res => {
+      const cfg = { ...config, resolution: res };
+      const result = engine.calculateFPS(cfg, game, gpu, refCpu);
+      const el = document.getElementById('fps-' + res.replace('p', '') + '-' + i);
+      if (el) el.textContent = String(result.avgFps);
+    });
+  });
+})();
+</script>
+
+</Layout>
+

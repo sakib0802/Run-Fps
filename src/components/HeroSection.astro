@@ -1,0 +1,104 @@
+---
+import { Icon } from 'astro-icon/components';
+import { useTranslations } from '../i18n/utils.js';
+
+export interface Props {
+  gameCount: number;
+  gpuCount: number;
+  cpuCount: number;
+  settingsCount: number;
+  locale: string;
+}
+
+const { gameCount, gpuCount, cpuCount, settingsCount, locale } = Astro.props;
+const { t } = useTranslations(locale);
+const p = (path: string) => `/${locale}${path}`;
+---
+
+<div class="hero-accent grid grid-cols-1 lg:grid-cols-2 gap-6 items-center py-8 sm:py-14">
+  <div>
+    <h1 class="font-display text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-ink dark:text-dark-ink leading-[1.15]">
+      {t('home.heroLine1')} <span class="text-ember">FPS</span>.<br />
+      {t('home.heroLine2')}<br />
+      <span class="text-mid-gray dark:text-dark-mid-gray">{t('home.heroLine3')}</span><span aria-hidden="true" id="tw" class="text-ember tw-text"></span><span class="sr-only">{t('home.heroSrGame')}</span>
+    </h1>
+    <p class="mt-6 sm:mt-3 text-sm sm:text-base text-mid-gray dark:text-dark-mid-gray max-w-lg leading-relaxed">
+      {t('home.heroDesc', { games: gameCount })}
+    </p>
+    <div class="mt-4 sm:mt-5 flex flex-col sm:flex-row items-start gap-3">
+      <a href={p('/calculator')} class="inline-flex items-center gap-2 px-6 py-3 bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas rounded-pill text-sm font-medium no-underline hover:scale-[1.02] transition-all duration-120">
+        {t('home.heroTitle')}
+        <Icon name="lucide:arrow-right" size={16} />
+      </a>
+      <a href={p('/optimizer')} class="inline-flex items-center gap-2 px-6 py-3 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink rounded-pill text-sm font-medium no-underline border border-hairline dark:border-dark-hairline hover:scale-[1.02] transition-all duration-120">
+        {t('home.tweakButton')}
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="card text-center">
+      <div class="font-display text-3xl sm:text-4xl font-bold text-ember">{gameCount}</div>
+      <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mt-1">{t('nav.games')}</div>
+    </div>
+    <div class="card text-center">
+      <div class="font-display text-3xl sm:text-4xl font-bold text-ink dark:text-dark-ink">{gpuCount}</div>
+      <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mt-1">GPUs</div>
+    </div>
+    <div class="card text-center">
+      <div class="font-display text-3xl sm:text-4xl font-bold text-ink dark:text-dark-ink">{cpuCount}</div>
+      <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mt-1">CPUs</div>
+    </div>
+    <div class="card text-center">
+      <div class="font-display text-3xl sm:text-4xl font-bold text-ember">{settingsCount.toLocaleString()}</div>
+      <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mt-1">{t('footer.benchmarks')}</div>
+    </div>
+    <div class="col-span-2 card flex items-center justify-center gap-2 text-sm text-mid-gray dark:text-dark-mid-gray font-mono">
+      <Icon name="lucide:star" size={14} />
+      {t('home.heroFree')}
+    </div>
+  </div>
+</div>
+
+<style>
+  .tw-text {
+    display: inline-block;
+    min-width: 7ch;
+    text-align: left;
+  }
+
+</style>
+
+<script>
+  (function() {
+    var el = document.getElementById('tw')!;
+    if (!el) return;
+    var words = ['CS2', 'Valorant', 'Fortnite', 'Warzone', 'Apex', 'Rust', 'Minecraft', 'GTA V', 'PUBG', 'Overwatch', 'R6', 'Dota 2', 'LoL', 'Rocket League', 'Genshin', 'Roblox', 'FIFA', 'Deadlock'];
+    var wordIdx = 0, charIdx = 0, isDeleting = false;
+    var speed = 80, deleteSpeed = 35, waitTime = 2000;
+    function tick() {
+      var word = words[wordIdx];
+      if (isDeleting) {
+        el.textContent = word.substring(0, charIdx);
+        charIdx--;
+        if (charIdx < 0) {
+          isDeleting = false;
+          wordIdx = (wordIdx + 1) % words.length;
+          setTimeout(tick, 120);
+          return;
+        }
+        setTimeout(tick, deleteSpeed);
+      } else {
+        el.textContent = word.substring(0, charIdx + 1);
+        charIdx++;
+        if (charIdx >= word.length) {
+          setTimeout(function() { isDeleting = true; tick(); }, waitTime);
+          return;
+        }
+        setTimeout(tick, speed);
+      }
+    }
+    setTimeout(tick, 800);
+  })();
+</script>
+

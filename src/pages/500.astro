@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<Layout title="Server Error - RunFps" description="Something went wrong on our end. Please try again.">
+<script type="application/json" id="error-i18n" set:html={JSON.stringify({
+  en: { heading: '500', text: 'Something went wrong on our end.', retry: 'Try Again', home: 'Go Home' },
+  de: { heading: '500', text: 'Auf unserer Seite ist ein Fehler aufgetreten.', retry: 'Erneut versuchen', home: 'Zur Startseite' },
+  fr: { heading: '500', text: 'Une erreur est survenue de notre côté.', retry: 'Réessayer', home: 'Accueil' },
+  es: { heading: '500', text: 'Algo salió mal en nuestro lado.', retry: 'Intentar de nuevo', home: 'Ir al inicio' }
+})}></script>
+  <div class="flex flex-col items-center justify-center py-16 sm:py-24 text-center">
+    <div class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+      <Icon name="lucide:alert-triangle" size={28} class="text-red-500" />
+    </div>
+    <h1 id="err-heading" class="font-display text-4xl sm:text-5xl font-semibold text-ink dark:text-dark-ink tracking-tight">500</h1>
+    <p id="err-text" class="mt-2 text-sm text-mid-gray dark:text-dark-mid-gray">Something went wrong on our end.</p>
+    <div class="mt-6 flex flex-col sm:flex-row items-center gap-3">
+      <button id="err-retry" onclick="window.location.reload()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas rounded-pill text-sm font-medium cursor-pointer border-0 hover:scale-[1.02] transition-all duration-120">Try Again</button>
+      <a id="err-home" href="/en/" class="inline-flex items-center gap-2 px-5 py-2.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink rounded-pill text-sm font-medium no-underline border border-hairline dark:border-dark-hairline hover:scale-[1.02] transition-all duration-120">Go Home</a>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var i18n;
+    try { i18n = JSON.parse(document.getElementById('error-i18n')!.textContent); } catch(e) { return; }
+    var path = window.location.pathname;
+    var seg = path.split('/').filter(Boolean);
+    var locale = seg.length > 0 && ['en','de','fr','es'].includes(seg[0]) ? seg[0] : 'en';
+    var t = i18n[locale] || i18n.en;
+    var text = document.getElementById('err-text');
+    var retry = document.getElementById('err-retry');
+    var home = document.getElementById('err-home') as HTMLAnchorElement | null;
+    if (text) text.textContent = t.text;
+    if (retry) retry.textContent = t.retry;
+    if (home) { home.textContent = t.home; home.href = '/' + locale + '/'; }
+  })();
+  </script>
+</Layout>
+
