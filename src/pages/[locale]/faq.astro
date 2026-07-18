@@ -1,0 +1,75 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations, locales } from '../../i18n/utils.js';
+import { translations } from '../../i18n/translations.js';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+const faqs = (translations[locale] || translations.en).faq.items;
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer.replace(/<[^>]*>/g, '')
+    }
+  }))
+};
+---
+
+<Layout title={t('faq.title')} description={t('faq.description')}>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)}></script>
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div>
+      <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('faq.heading')}</h1>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray mt-1">{t('faq.tagline')}</p>
+    </div>
+
+    <div class="space-y-2">
+      {faqs.map(faq => (
+        <div class="faq-item rounded-lg border border-hairline dark:border-dark-hairline bg-paper dark:bg-dark-paper">
+          <h2>
+            <button
+              id={"faq-btn-" + faq.id}
+              aria-expanded="false"
+              aria-controls={"faq-panel-" + faq.id}
+              class="w-full flex items-center justify-between gap-3 text-sm font-medium text-ink dark:text-dark-ink cursor-pointer py-3 px-4 bg-transparent border-0 rounded-lg text-left transition-colors duration-120 hover:bg-hairline/30 dark:hover:bg-dark-hairline/30"
+            >
+              <span>{faq.question}</span>
+              <svg class="chevron w-4 h-4 text-mid-gray dark:text-dark-mid-gray shrink-0 transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </h2>
+          <div
+            id={"faq-panel-" + faq.id}
+            role="region"
+            aria-labelledby={"faq-btn-" + faq.id}
+            class="faq-panel text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed px-4 pb-3 hidden"
+          >
+            <span>{faq.answer}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.faq-item').forEach(function(item) {
+      var btn = item.querySelector('button');
+      var panel = item.querySelector('.faq-panel');
+      btn.addEventListener('click', function() {
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', !expanded);
+        panel.classList.toggle('hidden', expanded);
+      });
+    });
+  </script>
+</Layout>
+

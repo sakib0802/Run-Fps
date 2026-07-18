@@ -1,0 +1,164 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { cpus } from '../../../data/cpus.json';
+
+const brands = [...new Set(cpus.map(c => c.brand))];
+const tiers = [...new Set(cpus.map(c => c.tier))];
+const sorted = [...cpus].sort((a, b) => b.score - a.score);
+---
+
+<Layout title="CPU Benchmarks - Performance Rankings" description="Compare CPUs ranked by gaming performance.">
+
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">CPU Benchmarks</h1>
+    <p class="text-sm text-mid-gray dark:text-dark-mid-gray mt-1">See how {cpus.length} CPUs rank for gaming — scores, specs, and how they perform in real games.</p>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button data-brand="all" class="brand-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120" aria-pressed="true">All</button>
+    {brands.map(b => (
+      <button data-brand={b} class="brand-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120 hover:bg-hairline dark:hover:bg-dark-hairline" aria-pressed="false">{b.charAt(0).toUpperCase() + b.slice(1)}</button>
+    ))}
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button data-tier="all" class="tier-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120" aria-pressed="true">All Tiers</button>
+    {tiers.map(t => (
+      <button data-tier={t} class="tier-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120 hover:bg-hairline dark:hover:bg-dark-hairline" aria-pressed="false">{t.charAt(0).toUpperCase() + t.slice(1)}</button>
+    ))}
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+    <label for="cpu-search" class="sr-only">Search CPUs</label>
+    <input type="text" id="cpu-search" placeholder="Search CPUs..." class="flex-1 w-full sm:max-w-xs px-4 py-2 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:ring-1 focus:ring-ember transition-colors duration-150" />
+    <label for="cpu-sort" class="sr-only">Sort by</label>
+    <select id="cpu-sort" class="px-3 py-2 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none appearance-none">
+      <option value="score-desc">Score (High to Low)</option>
+      <option value="score-asc">Score (Low to High)</option>
+      <option value="cores-desc">Cores (Most)</option>
+      <option value="tdp-asc">TDP (Lowest)</option>
+      <option value="year-desc">Launch Year (Newest)</option>
+      <option value="name-asc">Name (A-Z)</option>
+    </select>
+  </div>
+
+  <p id="cpu-result-count" class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono" aria-live="polite" aria-atomic="true"></p>
+
+  <div id="cpu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+  <div id="see-more-container" class="mt-6 text-center hidden">
+    <button id="see-more-btn" class="px-5 py-2 bg-canvas dark:bg-dark-paper text-ink dark:text-dark-ink text-sm font-medium rounded-pill border border-hairline dark:border-dark-hairline cursor-pointer hover:scale-[1.02] transition-all duration-120">Show more</button>
+  </div>
+</div>
+
+<script type="application/json" id="cpus-data" set:html={JSON.stringify(sorted)}></script>
+<script is:inline>
+const cpus = JSON.parse(document.getElementById('cpus-data').textContent);
+const cpuGrid = document.getElementById('cpu-grid');
+const countEl = document.getElementById('cpu-result-count');
+const searchEl = document.getElementById('cpu-search');
+const sortEl = document.getElementById('cpu-sort');
+
+let activeBrand = 'all';
+let activeTier = 'all';
+let searchQuery = '';
+let sortBy = 'score-desc';
+let visibleCount = 24;
+const PAGE_SIZE = 24;
+
+function render() {
+  let filtered = cpus.filter(c => {
+    const matchesBrand = activeBrand === 'all' || c.brand === activeBrand;
+    const matchesTier = activeTier === 'all' || c.tier === activeTier;
+    const matchesSearch = c.name.toLowerCase().includes(searchQuery);
+    return matchesBrand && matchesTier && matchesSearch;
+  });
+
+  filtered.sort((a, b) => {
+    switch (sortBy) {
+      case 'score-asc': return a.score - b.score;
+      case 'cores-desc': return b.cores - a.cores;
+      case 'tdp-asc': return a.tdp - b.tdp;
+      case 'year-desc': return b.launchYear - a.launchYear;
+      case 'name-asc': return a.name.localeCompare(b.name);
+      default: return b.score - a.score;
+    }
+  });
+
+  countEl.textContent = filtered.length === cpus.length ? `${cpus.length} CPUs` : `${filtered.length} of ${cpus.length} CPUs`;
+
+  const show = filtered.slice(0, visibleCount);
+  cpuGrid.innerHTML = show.map(c => {
+    const brandColor = c.brand === 'intel' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    const barColor = c.score >= 80 ? 'bg-emerald-500' : c.score >= 60 ? 'bg-amber-500' : c.score >= 40 ? 'bg-orange-500' : 'bg-red-500';
+    return `<a href="/benchmarks/cpu/${c.id}" class="card flex flex-col gap-3 no-underline group">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-display text-base font-medium text-ink dark:text-dark-ink">${c.name}</h2>
+          <span class="text-xs text-mid-gray dark:text-dark-mid-gray">${c.brand} &middot; ${c.generation}</span>
+        </div>
+        <span class="badge text-xs ${brandColor}">${c.brand}</span>
+      </div>
+      <div>
+        <div class="flex justify-between text-xs font-mono mb-1">
+          <span class="text-mid-gray dark:text-dark-mid-gray">Score</span>
+          <span class="text-ink dark:text-dark-ink font-medium">${c.score}/100</span>
+        </div>
+        <div class="h-2 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+          <div class="h-full rounded-full ${barColor}" style="width:${c.score}%"></div>
+        </div>
+      </div>
+      <div class="flex gap-4 text-xs font-mono text-mid-gray dark:text-dark-mid-gray">
+        <span>${c.cores}C/${c.threads}T</span>
+        <span>${c.tdp}W TDP</span>
+        <span>${c.launchYear}</span>
+      </div>
+    </a>`;
+  }).join('');
+
+  const seeMoreContainer = document.getElementById('see-more-container');
+  const seeMoreBtn = document.getElementById('see-more-btn');
+  if (filtered.length > visibleCount) {
+    seeMoreBtn.textContent = `Show more (${filtered.length - visibleCount})`;
+    seeMoreContainer.classList.remove('hidden');
+  } else {
+    seeMoreContainer.classList.add('hidden');
+  }
+  visibleCount = Math.max(visibleCount, PAGE_SIZE);
+}
+
+function setupFilters(btns, type) {
+  for (const btn of btns) {
+    btn.addEventListener('click', () => {
+      for (const b of btns) {
+        b.classList.remove('bg-ink', 'text-paper', 'dark:bg-dark-ink', 'dark:text-dark-canvas', 'border-0');
+        b.classList.add('bg-canvas', 'dark:bg-dark-canvas', 'text-mid-gray', 'dark:text-dark-mid-gray', 'border', 'border-hairline', 'dark:border-dark-hairline');
+        b.setAttribute('aria-pressed', 'false');
+      }
+      btn.classList.remove('bg-canvas', 'dark:bg-dark-canvas', 'text-mid-gray', 'dark:text-dark-mid-gray', 'border', 'border-hairline', 'dark:border-dark-hairline');
+      btn.classList.add('bg-ink', 'text-paper', 'dark:bg-dark-ink', 'dark:text-dark-canvas', 'border-0');
+      btn.setAttribute('aria-pressed', 'true');
+      visibleCount = PAGE_SIZE;
+      if (type === 'brand') activeBrand = btn.dataset.brand;
+      else activeTier = btn.dataset.tier;
+      render();
+    });
+  }
+}
+
+setupFilters(document.querySelectorAll('.brand-filter'), 'brand');
+setupFilters(document.querySelectorAll('.tier-filter'), 'tier');
+
+if (searchEl) searchEl.addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); visibleCount = PAGE_SIZE; render(); });
+if (sortEl) sortEl.addEventListener('change', (e) => { sortBy = e.target.value; visibleCount = PAGE_SIZE; render(); });
+
+document.getElementById('see-more-btn')?.addEventListener('click', () => {
+  visibleCount += PAGE_SIZE;
+  render();
+});
+
+render();
+</script>
+
+</Layout>

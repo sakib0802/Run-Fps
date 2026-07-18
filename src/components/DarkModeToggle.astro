@@ -1,0 +1,30 @@
+---
+import { Icon } from 'astro-icon/components';
+import { useTranslations } from '../i18n/utils.js';
+
+export interface Props {
+  currentLocale: string;
+}
+
+const { currentLocale } = Astro.props;
+const { t } = useTranslations(currentLocale);
+---
+
+<button
+  class="dark-toggle relative w-9 h-9 flex items-center justify-center rounded-pill text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink hover:bg-hairline/50 dark:hover:bg-dark-hairline/50 transition-all duration-120 cursor-pointer"
+  aria-label={t('misc.toggleDarkMode')}
+  title={t('misc.toggleDarkMode')}
+>
+  <Icon name="lucide:sun" size={18} class="sun-icon block dark:hidden" />
+  <Icon name="lucide:moon" size={18} class="moon-icon hidden dark:block" />
+</button>
+
+<script>
+  document.querySelectorAll('.dark-toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('runfps-theme', isDark ? 'dark' : 'light'); } catch(e) {}
+    });
+  });
+</script>
+

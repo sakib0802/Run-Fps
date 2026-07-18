@@ -1,0 +1,43 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations, locales } from '../../i18n/utils.js';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+---
+
+<Layout title={t('contact.title')} description={t('contact.description')}>
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div>
+      <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('contact.heading')}</h1>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray mt-1">{t('contact.tagline')}</p>
+    </div>
+
+    <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('contact.intro')}</p>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('contact.email')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed" set:html={t('contact.emailText', { email: '<a href="mailto:hello@runfps.com" class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">hello@runfps.com</a>' })}></p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('contact.reportBug')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('contact.bugText')}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('contact.suggestFeature')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('contact.featureText')}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('contact.partnerships')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('contact.partnershipsText')}</p>
+    </div>
+  </div>
+</Layout>
+

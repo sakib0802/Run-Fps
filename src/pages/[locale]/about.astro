@@ -1,0 +1,45 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations, locales } from '../../i18n/utils.js';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+---
+
+<Layout title={t('about.title')} description={t('about.description')}>
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div>
+      <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('about.heading')}</h1>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray mt-1">{t('about.tagline')}</p>
+    </div>
+
+    <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('about.intro')}</p>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('about.whatWeOffer')}</p>
+      <ul class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed space-y-1 list-disc list-inside">
+        <li><a href={`/${locale}/calculator`} class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">FPS Calculator</a> &mdash; {locale === 'de' ? 'Schätze FPS für jede GPU, CPU und Spielkombination' : locale === 'fr' ? 'Estimez les FPS pour toute combinaison GPU, CPU et jeu' : locale === 'es' ? 'Estima FPS para cualquier combinación de GPU, CPU y juego' : 'Estimate FPS for any GPU, CPU, and game combination'}</li>
+        <li><a href={`/${locale}/compare`} class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">{locale === 'de' ? 'Hardware-Vergleich' : locale === 'fr' ? 'Comparaison matérielle' : locale === 'es' ? 'Comparación de hardware' : 'Hardware Comparison'}</a> &mdash; {locale === 'de' ? 'Vergleiche GPUs und CPUs nebeneinander' : locale === 'fr' ? 'Comparez GPUs et CPUs côte à côte' : locale === 'es' ? 'Compara GPUs y CPUs lado a lado' : 'Compare GPUs and CPUs side by side'}</li>
+        <li><a href={`/${locale}/optimizer`} class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">{locale === 'de' ? 'Optimierer' : locale === 'fr' ? 'Optimiseur' : locale === 'es' ? 'Optimizador' : 'Settings Optimizer'}</a> &mdash; {locale === 'de' ? 'Finde die besten Einstellungen, um deine Ziel-FPS zu erreichen' : locale === 'fr' ? 'Trouvez les meilleurs réglages pour atteindre votre FPS cible' : locale === 'es' ? 'Encuentra la mejor configuración para alcanzar tu FPS objetivo' : 'Find the best settings to reach your target FPS'}</li>
+        <li><a href={`/${locale}/bottleneck`} class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">{locale === 'de' ? 'Engpass-Rechner' : locale === 'fr' ? 'Analyseur de goulot' : locale === 'es' ? 'Analizador de cuellos de botella' : 'Bottleneck Calculator'}</a> &mdash; {locale === 'de' ? 'Finde heraus, welche Komponente dich bremst' : locale === 'fr' ? 'Identifiez le composant qui vous freine' : locale === 'es' ? 'Identifica qué componente te está frenando' : 'Identify which component is holding you back'}</li>
+        <li><a href={`/${locale}/benchmarks/gpu`} class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">GPU &amp; CPU Benchmarks</a> &mdash; {locale === 'de' ? 'Durchsuche Leistungsrankings' : locale === 'fr' ? 'Parcourez les classements de performance' : locale === 'es' ? 'Explora clasificaciones de rendimiento' : 'Browse performance rankings'}</li>
+        <li><a href={`/${locale}/games`} class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">{locale === 'de' ? 'Spielebibliothek' : locale === 'fr' ? 'Bibliothèque de jeux' : locale === 'es' ? 'Biblioteca de juegos' : 'Games Library'}</a> &mdash; {locale === 'de' ? 'Prüfe FPS-Schätzungen und Systemanforderungen' : locale === 'fr' ? 'Vérifiez les estimations FPS et la configuration requise' : locale === 'es' ? 'Consulta estimaciones FPS y requisitos del sistema' : 'Check FPS estimates and system requirements'}</li>
+      </ul>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('about.privacyFirst')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed" set:html={t('about.privacyText', { privacy: `<a href="/${locale}/privacy" class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">${t('about.privacyLink')}</a>` })}></p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('about.builtForGamers')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('about.builtForGamersText')}</p>
+    </div>
+  </div>
+</Layout>
+

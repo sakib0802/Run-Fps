@@ -1,0 +1,102 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { cpus } from '../../../data/cpus.json';
+import { gpus } from '../../../data/gpus.json';
+import { games } from '../../../data/games.json';
+
+export async function getStaticPaths() {
+  return cpus.map(cpu => ({
+    params: { slug: cpu.id },
+    props: { cpu }
+  }));
+}
+
+const { cpu } = Astro.props;
+const topGpus = [...gpus].sort((a, b) => b.score - a.score).slice(0, 4);
+const topGames = games.slice(0, 8);
+---
+
+<Layout title={`${cpu.name} - CPU Benchmark & Gaming Performance`} description={`${cpu.name} benchmark score, specs, and estimated FPS in ${topGames.length} games.`}>
+
+<script type="application/json" id="cpu-data" set:html={JSON.stringify(cpu)}></script>
+<script type="application/json" id="gpus-data" set:html={JSON.stringify(topGpus)}></script>
+<script type="application/json" id="games-data" set:html={JSON.stringify(topGames)}></script>
+
+<div class="space-y-6">
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{cpu.name}</h1>
+        <p class="text-sm text-mid-gray dark:text-dark-mid-gray">{cpu.brand} &middot; {cpu.generation} &middot; Launched {cpu.launchYear}</p>
+      </div>
+      <span class="badge text-xs" class:list={[cpu.brand === 'intel' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200']}>{cpu.brand}</span>
+    </div>
+
+    <div class="mb-4">
+      <div class="flex justify-between text-sm font-mono mb-1">
+        <span class="text-mid-gray dark:text-dark-mid-gray">Performance Score</span>
+        <span class="text-ink dark:text-dark-ink font-semibold">{cpu.score}/100</span>
+      </div>
+      <div class="h-3 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all" style={`width:${cpu.score}%`} class:list={[cpu.score >= 80 ? 'bg-emerald-500' : cpu.score >= 60 ? 'bg-amber-500' : cpu.score >= 40 ? 'bg-orange-500' : 'bg-red-500']}></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{cpu.cores}C / {cpu.threads}T</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">Cores / Threads</div>
+      </div>
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{cpu.tdp}W</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">TDP</div>
+      </div>
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{cpu.launchYear}</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">Launch Year</div>
+      </div>
+      <div class="p-3 bg-canvas dark:bg-dark-canvas rounded-card">
+        <div class="font-display text-lg font-semibold text-ink dark:text-dark-ink">{cpu.tier}</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">Tier</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="font-display text-lg font-semibold text-ink dark:text-dark-ink mb-4">Estimated FPS in {topGames.length} Games</h2>
+    <p class="text-xs text-mid-gray dark:text-dark-mid-gray mb-4 font-mono">Using RTX 4090, 16GB DDR5-6000, NVMe at 1080p High preset.</p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-hairline dark:border-dark-hairline">
+            <th scope="col" class="text-left py-2 pr-4 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">Game</th>
+            {topGpus.map((g, i) => (
+              <th scope="col" id={"fps-header-" + i} class="text-right px-2 py-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">{g.name}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody id="fps-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const cpu = JSON.parse(document.getElementById('cpu-data').textContent);
+const topGpus = JSON.parse(document.getElementById('gpus-data').textContent);
+const topGames = JSON.parse(document.getElementById('games-data').textContent);
+const config = { ramCapacity: 16, ramType: 'ddr5', ramSpeed: 6000, ramChannel: 'dual', storage: 'nvme', resolution: '1080p', preset: 'high', rtEnabled: false, upscaling: 'none', resolutionScale: 100, frameCap: 0, monitorHz: 144, vramLimit: 0 };
+
+const body = document.getElementById('fps-body');
+for (const game of topGames) {
+  let row = `<tr class="border-b border-hairline dark:border-dark-hairline"><td class="py-2 pr-4 text-ink dark:text-dark-ink font-medium">${game.title}</td>`;
+  for (const gpu of topGpus) {
+    const result = window.RunFpsEngine.calculateFPS(config, game, gpu, cpu);
+    row += `<td class="text-right px-2 py-2 font-mono text-ink dark:text-dark-ink">${result.avgFps}</td>`;
+  }
+  row += '</tr>';
+  body.innerHTML += row;
+}
+</script>
+
+</Layout>

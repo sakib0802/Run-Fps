@@ -1,0 +1,717 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
+import gpusData from '../data/gpus.json';
+import cpusData from '../data/cpus.json';
+import gamesData from '../data/games.json';
+---
+
+<Layout title="FPS Calculator - Check Your Gaming PC Performance" description="Select your GPU, CPU, RAM, and game to get instant FPS estimates at any resolution and quality preset. Free, no signup required.">
+
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+  <!-- Form Column -->
+  <div class="lg:col-span-2">
+    <div class="card space-y-3">
+      <h1 class="font-display text-xl font-semibold text-ink dark:text-dark-ink tracking-tight">FPS Calculator</h1>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray">Choose your hardware and a game to estimate FPS.</p>
+
+      <!-- Quick Mode Toggle -->
+      <div class="flex gap-2">
+        <button id="mode-full" class="flex-1 py-1.5 text-xs font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120">Full</button>
+        <button id="mode-quick" class="flex-1 py-1.5 text-xs font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120">Quick</button>
+      </div>
+
+      <!-- Quick Mode (3 fields) -->
+      <div id="quick-fields" class="hidden space-y-3">
+        <div>
+          <label for="q-gpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">GPU</label>
+          <input type="text" id="q-gpu-search" placeholder="Search GPU..." class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+          <select id="q-gpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+        </div>
+        <div>
+          <label for="q-cpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">CPU</label>
+          <input type="text" id="q-cpu-search" placeholder="Search CPU..." class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+          <select id="q-cpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+        </div>
+        <div>
+          <label for="q-game" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Game</label>
+          <input type="text" id="q-game-search" placeholder="Search game..." class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+          <select id="q-game" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+        </div>
+      </div>
+
+      <!-- Full Mode Fields -->
+      <div id="full-fields" class="space-y-3">
+        <div>
+          <label for="gpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">GPU</label>
+          <input type="text" id="gpu-search" placeholder="Search GPU..." class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+          <select id="gpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+        </div>
+        <div>
+          <label for="cpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">CPU</label>
+          <input type="text" id="cpu-search" placeholder="Search CPU..." class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+          <select id="cpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+        </div>
+        <div>
+          <label for="game" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Game</label>
+          <input type="text" id="game-search" placeholder="Search game..." class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+          <select id="game" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label for="ram-capacity" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">RAM</label>
+            <select id="ram-capacity" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+              <option value="4">4 GB</option>
+              <option value="8">8 GB</option>
+              <option value="16" selected>16 GB</option>
+              <option value="32">32 GB</option>
+              <option value="64">64 GB</option>
+            </select>
+          </div>
+          <div>
+            <label for="ram-type" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Type</label>
+            <select id="ram-type" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+              <option value="ddr5" selected>DDR5</option>
+              <option value="ddr4">DDR4</option>
+              <option value="ddr3">DDR3</option>
+              <option value="ddr2">DDR2</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label for="resolution" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Resolution</label>
+            <select id="resolution" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+              <option value="720p">720p</option>
+              <option value="800p">800p</option>
+              <option value="1080p" selected>1080p</option>
+              <option value="1440p">1440p</option>
+              <option value="4K">4K</option>
+            </select>
+          </div>
+          <div>
+            <label for="preset" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Preset</label>
+            <select id="preset" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high" selected>High</option>
+              <option value="ultra">Ultra</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <button id="advanced-toggle" type="button" class="text-sm text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink transition-colors duration-120 cursor-pointer bg-transparent border-0 p-0" aria-expanded="false" aria-controls="advanced-options">+ Advanced Options</button>
+          <div id="advanced-options" class="hidden mt-2 space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label for="rt" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Ray Tracing</label>
+                <select id="rt" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+                  <option value="false">Off</option>
+                  <option value="true">On</option>
+                </select>
+              </div>
+              <div>
+                <label for="upscaling" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Upscaling</label>
+                <select id="upscaling" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+                  <option value="none">None</option>
+                  <option value="dlss_quality">DLSS Q</option>
+                  <option value="dlss_balanced">DLSS B</option>
+                  <option value="dlss_performance">DLSS P</option>
+                  <option value="fsr_quality">FSR Q</option>
+                  <option value="fsr_performance">FSR P</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label for="frame-cap" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Frame Cap</label>
+                <select id="frame-cap" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+                  <option value="0">None</option>
+                  <option value="60">60 FPS</option>
+                  <option value="120">120 FPS</option>
+                  <option value="144">144 FPS</option>
+                  <option value="240">240 FPS</option>
+                </select>
+              </div>
+              <div>
+                <label for="storage" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Storage</label>
+                <select id="storage" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+                  <option value="nvme">NVMe</option>
+                  <option value="ssd">SSD</option>
+                  <option value="hdd">HDD</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="os" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">Operating System</label>
+              <select id="os" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+                <option value="windows">Windows 10</option>
+                <option value="windows11">Windows 11</option>
+                <option value="linux">Linux (Proton)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="calculate-btn" class="w-full py-3 bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas rounded-pill text-sm font-medium cursor-pointer border-0 hover:scale-[1.02] transition-all duration-120 disabled:opacity-50 disabled:cursor-not-allowed">
+        Calculate FPS
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Column -->
+  <div class="lg:col-span-3">
+    <div id="results-container" aria-live="polite" tabindex="-1">
+      <div id="calc-skeleton" class="card space-y-4 p-6">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text" style="width:80%"></div>
+        <div class="skeleton skeleton-bar"></div>
+        <div class="skeleton skeleton-text" style="width:45%"></div>
+        <div class="skeleton skeleton-bar"></div>
+      </div>
+      <div id="calc-placeholder" class="card flex flex-col items-center justify-center py-16 text-center hidden">
+        <Icon name="lucide:calculator" size={40} class="text-hairline dark:text-dark-hairline mb-3" />
+        <p class="text-mid-gray dark:text-dark-mid-gray text-sm">Select your hardware and a game, then click Calculate.</p>
+        <div class="flex items-center gap-3 mt-3 text-xs text-mid-gray dark:text-dark-mid-gray font-mono">
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-ember"></span> GPU</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-ink dark:bg-dark-ink"></span> CPU</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-mid-gray dark:bg-dark-mid-gray"></span> Game</span>
+        </div>
+      </div>
+    </div>
+    <div id="results" class="hidden space-y-4" aria-live="polite" tabindex="-1">
+      <!-- Main FPS Display -->
+      <div class="card text-center">
+        <div class="flex items-center justify-center gap-4">
+          <div>
+            <div id="fps-number" class="font-display text-6xl sm:text-7xl font-semibold tracking-[-0.04em] text-ink dark:text-dark-ink leading-none">0</div>
+            <div id="fps-label" class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mt-1">AVERAGE FPS</div>
+          </div>
+          <div class="text-left space-y-1">
+            <div><span id="p1-low" class="font-mono text-sm text-ink dark:text-dark-ink">0</span> <span class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">1% Low</span></div>
+            <div><span id="p01-low" class="font-mono text-sm text-ink dark:text-dark-ink">0</span> <span class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">0.1% Low</span></div>
+            <div><span id="rating-badge" class="inline-block badge bg-ink-soft text-paper dark:bg-dark-ink-soft dark:text-dark-canvas">&ndash;</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Utilization Bars -->
+      <div class="card">
+        <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-3">CPU / GPU Utilization</h2>
+        <div class="space-y-2">
+          <div>
+            <div class="flex justify-between text-xs text-mid-gray dark:text-dark-mid-gray font-mono mb-1">
+              <span>CPU</span>
+              <span id="cpu-load-text">0%</span>
+            </div>
+            <div class="h-2 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+              <div id="cpu-bar" class="h-full bg-ink dark:bg-dark-ink rounded-full transition-all duration-500" style="width:0%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-mid-gray dark:text-dark-mid-gray font-mono mb-1">
+              <span>GPU</span>
+              <span id="gpu-load-text">0%</span>
+            </div>
+            <div class="h-2 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+              <div id="gpu-bar" class="h-full bg-mid-gray dark:bg-dark-mid-gray rounded-full transition-all duration-500" style="width:0%"></div>
+            </div>
+          </div>
+          <div id="bottleneck-text" class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono"></div>
+        </div>
+      </div>
+
+      <!-- Preset Breakdown -->
+      <div class="card">
+        <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-3">FPS by Preset</h2>
+        <div id="preset-breakdown" class="space-y-1.5"></div>
+      </div>
+
+      <!-- Resolution Breakdown -->
+      <div class="card">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink">FPS by Resolution</h2>
+          <span id="slider-fps" class="font-mono text-sm font-semibold text-ember"></span>
+        </div>
+        <input type="range" id="res-slider" min="0" max="4" step="1" value="2" class="w-full h-1.5 bg-canvas dark:bg-dark-canvas rounded-full appearance-none cursor-pointer accent-ember mb-3" aria-label="Adjust resolution" />
+        <div id="slider-labels" class="flex justify-between text-[10px] font-mono text-mid-gray dark:text-dark-mid-gray mb-3"></div>
+        <div id="resolution-breakdown" class="space-y-1.5"></div>
+      </div>
+
+      <!-- Upgrade Path -->
+      <div class="card">
+        <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-3">Upgrade Path</h2>
+        <div id="upgrade-path" class="space-y-2"></div>
+      </div>
+
+      <!-- Tips -->
+      <div class="card">
+        <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-3">Tips</h2>
+        <div id="tips" class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed space-y-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="gpus-data" set:html={JSON.stringify(gpusData.gpus)}></script>
+<script type="application/json" id="cpus-data" set:html={JSON.stringify(cpusData.cpus)}></script>
+<script type="application/json" id="games-data" set:html={JSON.stringify(gamesData.games)}></script>
+
+<script type="module">
+import { setupFilteredSelect } from '../data/searchable-select.js';
+
+const $ = (id) => document.getElementById(id);
+
+let gpus = [], cpus = [], games = [];
+let _lastGpu = null, _lastCpu = null, _lastGame = null, _lastConfig = null;
+
+const _resultCache = new Map();
+function getCached(config, game, gpu, cpu) {
+  const key = `${game.id}|${(gpu.id || 'igpu_' + gpu.score)}|${cpu.id}|${config.resolution}|${config.preset}|${config.ramCapacity}|${config.ramType}|${config.storage}|${config.rtEnabled}|${config.upscaling}|${config.frameCap}|${config.os}`;
+  if (_resultCache.has(key)) return _resultCache.get(key);
+  const result = window.RunFpsEngine.calculateFPS(config, game, gpu, cpu);
+  _resultCache.set(key, result);
+  return result;
+}
+
+function debounce(fn, ms) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+}
+
+async function loadData() {
+  gpus = JSON.parse(document.getElementById('gpus-data').textContent);
+  cpus = JSON.parse(document.getElementById('cpus-data').textContent);
+  games = JSON.parse(document.getElementById('games-data').textContent);
+}
+
+function populateSelect(selectId, items, labelKey, placeholder) {
+  const sel = $(selectId);
+  if (!sel) return;
+  sel.innerHTML = `<option value="">Select ${placeholder}</option>` +
+    items.map((item, i) =>
+    `<option value="${i}">${item[labelKey]}</option>`
+  ).join('');
+}
+
+(async () => {
+  try {
+    await loadData();
+
+    populateSelect('gpu', gpus, 'name', 'GPU');
+    populateSelect('cpu', cpus, 'name', 'CPU');
+    populateSelect('game', games, 'title', 'game');
+    populateSelect('q-gpu', gpus, 'name', 'GPU');
+    populateSelect('q-cpu', cpus, 'name', 'CPU');
+    populateSelect('q-game', games, 'title', 'game');
+
+    setupFilteredSelect('gpu-search', 'gpu', gpus, 'name');
+    setupFilteredSelect('cpu-search', 'cpu', cpus, 'name');
+    setupFilteredSelect('game-search', 'game', games, 'title');
+    setupFilteredSelect('q-gpu-search', 'q-gpu', gpus, 'name');
+    setupFilteredSelect('q-cpu-search', 'q-cpu', cpus, 'name');
+    setupFilteredSelect('q-game-search', 'q-game', games, 'title');
+
+    // Show placeholder, hide skeleton
+    $('calc-skeleton')?.classList.add('hidden');
+    $('calc-placeholder')?.classList.remove('hidden');
+
+    $('mode-full')?.addEventListener('click', () => {
+      $('full-fields').classList.remove('hidden');
+      $('quick-fields').classList.add('hidden');
+      $('mode-full').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120';
+      $('mode-quick').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120';
+    });
+    $('mode-quick')?.addEventListener('click', () => {
+      $('full-fields').classList.add('hidden');
+      $('quick-fields').classList.remove('hidden');
+      $('mode-quick').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120';
+      $('mode-full').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120';
+    });
+
+    $('advanced-toggle')?.addEventListener('click', () => {
+      const adv = $('advanced-options');
+      const toggle = $('advanced-toggle');
+      const isHidden = adv.classList.contains('hidden');
+      adv.classList.toggle('hidden');
+      toggle.textContent = isHidden ? '- Advanced Options' : '+ Advanced Options';
+      toggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    });
+
+    $('calculate-btn')?.addEventListener('click', calculate);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && gpus.length > 0) calculate();
+    });
+
+    // Auto-calc on selection change
+    const autoCalcSelects = ['gpu', 'cpu', 'game', 'ram-capacity', 'ram-type', 'resolution', 'preset', 'rt', 'upscaling', 'frame-cap', 'storage', 'os', 'q-gpu', 'q-cpu', 'q-game'];
+    for (const id of autoCalcSelects) {
+      $(id)?.addEventListener('change', calculate);
+    }
+
+    // URL param support
+    readUrlParams();
+  } catch (e) {
+    console.error('RunFps calculator init error:', e);
+  }
+})();
+
+function getSelectedValue(selectId, items) {
+  const sel = $(selectId);
+  return sel && sel.value !== '' ? items[parseInt(sel.value, 10)] : null;
+}
+
+function readUrlParams() {
+  const params = new URLSearchParams(location.search);
+  const setSelect = (id, param) => {
+    const val = params.get(param);
+    if (val !== null) {
+      const el = $(id);
+      if (el) { el.value = val; }
+    }
+  };
+  const setSelectByLabel = (selectId, param, items, labelKey) => {
+    const val = params.get(param);
+    if (val !== null && items) {
+      const idx = items.findIndex(i => i[labelKey].toLowerCase() === val.toLowerCase());
+      if (idx >= 0) $(selectId).value = '' + idx;
+    }
+  };
+  const mode = params.get('mode');
+  if (mode === 'quick') {
+    $('mode-quick')?.click();
+  } else {
+    $('mode-full')?.click();
+  }
+  setSelectByLabel('gpu', 'gpu', gpus, 'name');
+  setSelectByLabel('cpu', 'cpu', cpus, 'name');
+  setSelectByLabel('game', 'game', games, 'title');
+  setSelectByLabel('q-gpu', 'gpu', gpus, 'name');
+  setSelectByLabel('q-cpu', 'cpu', cpus, 'name');
+  setSelectByLabel('q-game', 'game', games, 'title');
+  setSelect('ram-capacity', 'ram');
+  setSelect('resolution', 'resolution');
+  setSelect('preset', 'preset');
+
+  // Auto-calculate if we have CPU + game (GPU optional if CPU has iGPU)
+  const isQuick = !$('quick-fields').classList.contains('hidden');
+  const cpuSel = isQuick ? $('q-cpu') : $('cpu');
+  const gameSel = isQuick ? $('q-game') : $('game');
+  if (cpuSel?.value && gameSel?.value) {
+    setTimeout(calculate, 100);
+  }
+}
+
+function updateUrl() {
+  const isQuick = !$('quick-fields').classList.contains('hidden');
+  const params = new URLSearchParams();
+  if (isQuick) params.set('mode', 'quick');
+  const gpu = getSelectedValue(isQuick ? 'q-gpu' : 'gpu', gpus);
+  const cpu = getSelectedValue(isQuick ? 'q-cpu' : 'cpu', cpus);
+  const game = getSelectedValue(isQuick ? 'q-game' : 'game', games);
+  if (gpu) params.set('gpu', gpu.name.toLowerCase().replace(/\s+/g, '-'));
+  if (cpu) params.set('cpu', cpu.name.toLowerCase().replace(/\s+/g, '-'));
+  if (game) params.set('game', game.title.toLowerCase().replace(/\s+/g, '-'));
+  if (!isQuick) {
+    params.set('ram', $('ram-capacity')?.value || '16');
+    params.set('resolution', $('resolution')?.value || '1080p');
+    params.set('preset', $('preset')?.value || 'high');
+  }
+  const qs = params.toString();
+  const url = qs ? `${location.pathname}?${qs}` : location.pathname;
+  history.replaceState(null, '', url);
+}
+
+function calculate() {
+  const isQuick = !$('quick-fields').classList.contains('hidden');
+
+  let gpu, cpu, game, ramCapacity, ramType, resolution, preset, rt, upscaling, frameCap, storage, os;
+
+  if (isQuick) {
+    gpu = getSelectedValue('q-gpu', gpus);
+    cpu = getSelectedValue('q-cpu', cpus);
+    game = getSelectedValue('q-game', games);
+    ramCapacity = 16;
+    ramType = 'ddr5';
+    resolution = '1080p';
+    preset = 'high';
+    rt = false;
+    upscaling = 'none';
+    frameCap = 0;
+    storage = 'nvme';
+    os = 'windows';
+  } else {
+    gpu = getSelectedValue('gpu', gpus);
+    cpu = getSelectedValue('cpu', cpus);
+    game = getSelectedValue('game', games);
+    ramCapacity = parseInt($('ram-capacity')?.value || '16', 10);
+    ramType = $('ram-type')?.value || 'ddr5';
+    resolution = $('resolution')?.value || '1080p';
+    preset = $('preset')?.value || 'high';
+    rt = $('rt')?.value === 'true';
+    upscaling = $('upscaling')?.value || 'none';
+    frameCap = parseInt($('frame-cap')?.value || '0', 10);
+    storage = $('storage')?.value || 'nvme';
+    os = $('os')?.value || 'windows';
+  }
+
+  if (!cpu || !game) {
+    $('results').classList.add('hidden');
+    $('results-container').classList.remove('hidden');
+    $('calc-skeleton').classList.add('hidden');
+    $('calc-placeholder').classList.remove('hidden');
+    $('calc-placeholder').querySelector('p').textContent = 'Please select a CPU and game.';
+    $('results-container').focus();
+    return;
+  }
+
+  if (!gpu) {
+    if (cpu.igpuScore) {
+      gpu = { name: cpu.name + ' iGPU', score: cpu.igpuScore, vram: cpu.igpuScore >= 20 ? 4 : cpu.igpuScore >= 10 ? 2 : 1, brand: cpu.brand };
+    } else {
+      $('results').classList.add('hidden');
+      $('results-container').classList.remove('hidden');
+      $('calc-skeleton').classList.add('hidden');
+      $('calc-placeholder').classList.remove('hidden');
+      $('calc-placeholder').querySelector('p').textContent = cpu.name + ' has no integrated graphics. Please select a GPU.';
+      $('results-container').focus();
+      return;
+    }
+  }
+
+  updateUrl();
+
+  _lastGpu = gpu; _lastCpu = cpu; _lastGame = game;
+  const config = { ramCapacity, ramType, ramSpeed: 6000, ramChannel: 'dual', storage, resolution, preset, rtEnabled: rt, upscaling, resolutionScale: 100, frameCap, monitorHz: 144, vramLimit: 0, os };
+  _lastConfig = config;
+  const result = getCached(config, game, gpu, cpu);
+
+  showResults(result, gpu, cpu, game, config);
+}
+
+function showResults(result, gpu, cpu, game, config) {
+  const res = $('results');
+  $('results-container').classList.add('hidden');
+  res.classList.remove('hidden');
+  res.focus();
+
+  // Animate FPS number
+  const fpsEl = $('fps-number');
+  const targetFps = result.avgFps;
+  fpsEl.style.animation = 'none';
+  fpsEl.offsetHeight;
+  fpsEl.style.animation = 'count-up 300ms ease-out';
+  animateCounter(fpsEl, targetFps, 300);
+
+  $('fps-label').textContent = 'AVERAGE FPS';
+  $('p1-low').textContent = result.p1Low;
+  $('p01-low').textContent = result.p01Low;
+  $('rating-badge').textContent = result.rating;
+  $('rating-badge').style.background = result.rating === 'Elite' || result.rating === 'High Refresh' ? '#0a0a0a' : result.rating === 'Smooth' ? '#171717' : result.rating === 'Playable' ? '#737373' : '#e7000b';
+  $('rating-badge').style.color = result.rating === 'Playable' || result.rating === 'Unplayable' ? '#ffffff' : '#fafafa';
+
+  if (result.fpsCapped) {
+    $('fps-label').textContent = `CAPPED AT ${config.frameCap} FPS`;
+  }
+
+  // Utilization bars
+  animateBar('cpu-bar', result.cpuLoad);
+  animateBar('gpu-bar', result.gpuLoad);
+  $('cpu-load-text').textContent = `${result.cpuLoad}%`;
+  $('gpu-load-text').textContent = `${result.gpuLoad}%`;
+  $('bottleneck-text').textContent = `Bottleneck: ${result.bottleneck} (${result.bottleneckPercent}%)`;
+
+  // Preset breakdown
+  const presetBreakdown = $('preset-breakdown');
+  presetBreakdown.innerHTML = '';
+  const presets = [
+    { label: 'Low', value: 'low' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'High', value: 'high' },
+    { label: 'Ultra', value: 'ultra' }
+  ];
+  const presetMuls = { low: 1.4, medium: 1.15, high: 0.9, ultra: 0.7 };
+  const currentPresetMul = presetMuls[config.preset] || 0.9;
+  for (const p of presets) {
+    const fps = Math.round(result.avgFps * presetMuls[p.value] / currentPresetMul);
+    const maxFps = presets.reduce((max, pr) => Math.max(max, Math.round(result.avgFps * presetMuls[pr.value] / currentPresetMul)), 0);
+    const barWidth = (fps / maxFps) * 100;
+    presetBreakdown.innerHTML += `
+      <div>
+        <div class="flex justify-between text-xs font-mono mb-0.5">
+          <span class="text-mid-gray dark:text-dark-mid-gray">${p.label}</span>
+          <span class="text-ink dark:text-dark-ink font-medium">${fps} FPS</span>
+        </div>
+        <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+          <div class="h-full bg-ink dark:bg-dark-ink rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // Resolution breakdown
+  const resBreakdown = $('resolution-breakdown');
+  resBreakdown.innerHTML = '';
+  const resolutions = [
+    { label: '720p', scale: 1.25 },
+    { label: '800p', scale: 1.18 },
+    { label: '1080p', scale: 1.0 },
+    { label: '1440p', scale: 0.72 },
+    { label: '4K', scale: 0.45 }
+  ];
+  const resScales = { '720p': 1.25, '800p': 1.18, '1080p': 1.0, '1440p': 0.72, '4K': 0.45 };
+  const currentResScale = resScales[config.resolution] || 1.0;
+  for (const r of resolutions) {
+    const fps = Math.round(result.avgFps * r.scale / currentResScale);
+    const barWidth = (r.scale / 1.25) * 100;
+    const isSelected = r.label.toLowerCase() === config.resolution.toLowerCase();
+    resBreakdown.innerHTML += `
+      <div class="${isSelected ? 'opacity-100' : 'opacity-60'}">
+        <div class="flex justify-between text-xs font-mono mb-0.5">
+          <span class="text-mid-gray dark:text-dark-mid-gray">${r.label}</span>
+          <span class="text-ink dark:text-dark-ink font-medium">${fps} FPS</span>
+        </div>
+        <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+          <div class="h-full bg-mid-gray dark:bg-dark-mid-gray rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // Upgrade path
+  const upgradePath = $('upgrade-path');
+  upgradePath.innerHTML = '';
+  const currentScore = gpu.score;
+  const upgrades = gpus.filter(g => g.score > currentScore + 5).slice(0, 4);
+  if (upgrades.length > 0) {
+    for (const upg of upgrades) {
+      const fpsGain = Math.round(((upg.score / gpu.score) - 1) * 100);
+      const upgFps = Math.round(result.avgFps * (upg.score / gpu.score));
+      const maxFps = upgrades.reduce((max, u) => Math.max(max, Math.round(result.avgFps * (u.score / gpu.score))), 0);
+      const barWidth = (upgFps / maxFps) * 100;
+      upgradePath.innerHTML += `
+        <div>
+          <div class="flex justify-between text-xs font-mono mb-0.5">
+            <span class="text-ink dark:text-dark-ink">${upg.name}</span>
+            <span class="text-mid-gray dark:text-dark-mid-gray">+${fpsGain}% <span class="font-medium text-ink dark:text-dark-ink">${upgFps} FPS</span></span>
+          </div>
+          <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+            <div class="h-full bg-ink-soft dark:bg-dark-ink-soft rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
+          </div>
+        </div>`;
+    }
+  } else {
+    upgradePath.innerHTML = '<p class="text-xs text-mid-gray dark:text-dark-mid-gray">You already have a top-tier GPU.</p>';
+  }
+
+  // Tips
+  const tips = $('tips');
+  tips.innerHTML = '';
+  const tipList = [];
+  if (result.bottleneck === 'CPU') tipList.push(`Your CPU (${cpu.name}) is bottlenecking your GPU (${gpu.name}) by ${result.bottleneckPercent}%. Consider a CPU upgrade for better performance.`);
+  if (result.bottleneck === 'GPU') tipList.push(`Your GPU (${gpu.name}) is the primary limit. Upgrading to a faster GPU would give the biggest FPS boost.`);
+  if (!config.rtEnabled && game.ray_tracing) tipList.push('This game supports ray tracing. Enable it if you have headroom, but expect a 20-25% FPS hit.');
+  if (config.upscaling === 'none' && (game.dlss || game.fsr)) tipList.push('This game supports DLSS/FSR. Enabling upscaling could boost FPS by 15-30%.');
+  if (config.frameCap > 0 && result.avgFps > config.frameCap) tipList.push(`Your system exceeds the ${config.frameCap} FPS cap. Consider removing the cap if your monitor supports higher refresh rates.`);
+
+  if (tipList.length === 0) {
+    tipList.push('Your system is well-balanced for this game. Enjoy the smooth gameplay!');
+  }
+  tipList.forEach(t => { tips.innerHTML += `<p>${t}</p>`; });
+}
+
+function animateCounter(el, target, duration) {
+  const start = performance.now();
+  function step(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
+
+function animateBar(barId, value) {
+  const bar = $(barId);
+  if (bar) {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    bar.offsetHeight;
+    bar.style.transition = 'width 500ms ease-out';
+    bar.style.width = `${Math.min(100, value)}%`;
+  }
+}
+
+// Resolution slider
+const sliderResolutions = ['720p', '800p', '1080p', '1440p', '4K'];
+const sliderLabels = $('slider-labels');
+sliderResolutions.forEach((r, i) => {
+  const span = document.createElement('span');
+  span.textContent = r;
+  span.className = i === 2 ? 'text-ink dark:text-dark-ink font-medium' : '';
+  sliderLabels.appendChild(span);
+});
+
+let _sliderResult = null;
+
+$('res-slider')?.addEventListener('input', debounce(function() {
+  if (!_lastGpu || !_lastCpu || !_lastGame || !_lastConfig) return;
+  const res = sliderResolutions[parseInt(this.value, 10)];
+  const cfg = { ..._lastConfig, resolution: res };
+  const result = getCached(cfg, _lastGame, _lastGpu, _lastCpu);
+  _sliderResult = result;
+
+  // Update slider FPS label
+  $('slider-fps').textContent = `${result.avgFps} FPS`;
+
+  // Update main FPS display
+  const fpsEl = $('fps-number');
+  fpsEl.textContent = result.avgFps;
+  $('p1-low').textContent = result.p1Low;
+  $('p01-low').textContent = result.p01Low;
+  $('fps-label').textContent = 'AVERAGE FPS';
+  if (result.fpsCapped) {
+    $('fps-label').textContent = `CAPPED AT ${cfg.frameCap} FPS`;
+  }
+  $('rating-badge').textContent = result.rating;
+  $('rating-badge').style.background = result.rating === 'Elite' || result.rating === 'High Refresh' ? '#0a0a0a' : result.rating === 'Smooth' ? '#171717' : result.rating === 'Playable' ? '#737373' : '#e7000b';
+  $('rating-badge').style.color = result.rating === 'Playable' || result.rating === 'Unplayable' ? '#ffffff' : '#fafafa';
+
+  // Update utilization bars
+  animateBar('cpu-bar', result.cpuLoad);
+  animateBar('gpu-bar', result.gpuLoad);
+  $('cpu-load-text').textContent = `${result.cpuLoad}%`;
+  $('gpu-load-text').textContent = `${result.gpuLoad}%`;
+  $('bottleneck-text').textContent = `Bottleneck: ${result.bottleneck} (${result.bottleneckPercent}%)`;
+
+  // Rebuild resolution breakdown at this new resolution
+  const resBreakdown = $('resolution-breakdown');
+  resBreakdown.innerHTML = '';
+  const resScales = { '720p': 1.25, '800p': 1.18, '1080p': 1.0, '1440p': 0.72, '4K': 0.45 };
+  const currentResScale = resScales[res] || 1.0;
+  for (const r2 of sliderResolutions) {
+    const fps = Math.round(result.avgFps * (resScales[r2] || 1.0) / currentResScale);
+    const barWidth = ((resScales[r2] || 1.0) / 1.25) * 100;
+    const isSelected = r2 === res;
+    resBreakdown.innerHTML += `
+      <div class="${isSelected ? 'opacity-100' : 'opacity-60'}">
+        <div class="flex justify-between text-xs font-mono mb-0.5">
+          <span class="text-mid-gray dark:text-dark-mid-gray">${r2}</span>
+          <span class="text-ink dark:text-dark-ink font-medium">${fps} FPS</span>
+        </div>
+        <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+          <div class="h-full bg-mid-gray dark:bg-dark-mid-gray rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // Update slider labels highlight
+  document.querySelectorAll('#slider-labels span').forEach((sp, i) => {
+    sp.className = i === parseInt(this.value, 10) ? 'text-ink dark:text-dark-ink font-medium' : '';
+  });
+}, 75));
+</script>
+
+</Layout>

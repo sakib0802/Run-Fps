@@ -1,0 +1,225 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
+import { useTranslations, locales } from '../../i18n/utils.js';
+import gpusData from '../../data/gpus.json';
+import cpusData from '../../data/cpus.json';
+import gamesData from '../../data/games.json';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+const ui = {
+  noChanges: t('optimizer.noChanges'),
+  cannotReach: t('optimizer.cannotReach'),
+  searchGpu: t('optimizer.searchGpu'),
+  searchCpu: t('optimizer.searchCpu'),
+  searchGame: t('optimizer.searchGame'),
+  selectGpu: t('optimizer.selectGpu'),
+  selectCpu: t('optimizer.selectCpu'),
+  selectGame: t('optimizer.selectGame'),
+  optimize: t('optimizer.optimize'),
+  currentFps: t('optimizer.currentFps'),
+  targetFps: t('optimizer.targetFps'),
+  targetFpsLabel: t('optimizer.targetFpsLabel'),
+  recommendedChanges: t('optimizer.recommendedChanges'),
+  projectedFps: t('optimizer.projectedFps'),
+  setting: t('optimizer.setting'),
+  change: t('optimizer.change'),
+  fpsGain: t('optimizer.fpsGain'),
+  fps: t('misc.fps'),
+  custom: t('optimizer.custom'),
+  customTarget: t('optimizer.customTarget')
+};
+---
+
+<Layout title={t('optimizer.title')} description={t('optimizer.description')}>
+
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+  <div class="lg:col-span-2">
+    <div class="card space-y-3">
+      <h1 class="font-display text-xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('optimizer.heading')}</h1>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('optimizer.subtitle')}</p>
+
+      <div>
+        <label for="gpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('optimizer.gpu')}</label>
+        <input type="text" id="gpu-search" placeholder={t('optimizer.searchGpu')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+        <select id="gpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+      </div>
+      <div>
+        <label for="cpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('optimizer.cpu')}</label>
+        <input type="text" id="cpu-search" placeholder={t('optimizer.searchCpu')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+        <select id="cpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+      </div>
+      <div>
+        <label for="game" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('optimizer.game')}</label>
+        <input type="text" id="game-search" placeholder={t('optimizer.searchGame')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
+        <select id="game" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
+      </div>
+      <div>
+        <label for="target-fps" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('optimizer.targetFps')}</label>
+        <select id="target-fps" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none">
+          <option value="60">60 FPS</option>
+          <option value="120">120 FPS</option>
+          <option value="144" selected>144 FPS</option>
+          <option value="240">240 FPS</option>
+          <option value="custom">{ui.custom}</option>
+        </select>
+      </div>
+      <div id="custom-fps-container" class="hidden">
+        <label for="custom-fps" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{ui.customTarget}</label>
+        <input type="number" id="custom-fps" placeholder={ui.customTarget} class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none" />
+      </div>
+
+      <button id="optimize-btn" class="w-full py-3 bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas rounded-pill text-sm font-medium cursor-pointer border-0 hover:scale-[1.02] transition-all duration-120">
+        {ui.optimize}
+      </button>
+    </div>
+  </div>
+
+  <div class="lg:col-span-3">
+    <div id="optimizer-results" class="hidden space-y-4" aria-live="polite" tabindex="-1">
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mb-1">{ui.currentFps}</div>
+            <div id="current-fps-display" class="font-display text-3xl font-semibold text-ink dark:text-dark-ink tracking-[-0.03em]">0</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono mb-1">{ui.targetFps}</div>
+            <div id="target-fps-display" class="font-display text-3xl font-semibold text-ink dark:text-dark-ink tracking-[-0.03em]">0</div>
+          </div>
+        </div>
+        <div class="h-3 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+          <div id="fps-progress" class="h-full bg-ink-soft dark:bg-dark-ink-soft rounded-full transition-all duration-700" style="width:0%"></div>
+        </div>
+        <div id="optimizer-verdict" class="mt-3 text-sm font-mono"></div>
+      </div>
+
+      <div id="optimizer-changes" class="hidden" aria-live="polite">
+        <div class="card">
+          <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-3">{ui.recommendedChanges}</h2>
+          <div id="changes-table" class="space-y-2"></div>
+          <div class="mt-4 pt-4 border-t border-hairline dark:border-dark-hairline">
+            <div class="flex justify-between text-sm font-mono">
+              <span class="text-mid-gray dark:text-dark-mid-gray">{ui.projectedFps}</span>
+              <span id="final-fps-display" class="font-medium text-ink dark:text-dark-ink">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="opt-gpus-data" set:html={JSON.stringify(gpusData.gpus)}></script>
+<script type="application/json" id="opt-cpus-data" set:html={JSON.stringify(cpusData.cpus)}></script>
+<script type="application/json" id="opt-games-data" set:html={JSON.stringify(gamesData.games)}></script>
+<script type="application/json" id="opt-i18n" set:html={JSON.stringify(ui)}></script>
+
+<script type="module">
+import { setupFilteredSelect } from '../../data/searchable-select.js';
+const i18n = JSON.parse(document.getElementById('opt-i18n').textContent);
+
+const $ = (id) => document.getElementById(id);
+
+let gpus = [], cpus = [], games = [];
+
+async function loadData() {
+  gpus = JSON.parse(document.getElementById('opt-gpus-data').textContent);
+  cpus = JSON.parse(document.getElementById('opt-cpus-data').textContent);
+  games = JSON.parse(document.getElementById('opt-games-data').textContent);
+}
+
+(async () => {
+  await loadData();
+  populateSelect('gpu', gpus, 'name', i18n.selectGpu);
+  populateSelect('cpu', cpus, 'name', i18n.selectCpu);
+  populateSelect('game', games, 'title', i18n.selectGame);
+  setupFilteredSelect('gpu-search', 'gpu', gpus, 'name');
+  setupFilteredSelect('cpu-search', 'cpu', cpus, 'name');
+  setupFilteredSelect('game-search', 'game', games, 'title');
+
+  $('target-fps')?.addEventListener('change', function() {
+    document.getElementById('custom-fps-container').classList.toggle('hidden', this.value !== 'custom');
+  });
+
+  $('optimize-btn')?.addEventListener('click', optimize);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && gpus.length > 0) optimize();
+  });
+})();
+
+function populateSelect(selectId, items, labelKey, placeholder) {
+  const sel = $(selectId);
+  if (!sel) return;
+  sel.innerHTML = `<option value="">${placeholder}</option>` + items.map((item, i) => `<option value="${i}">${item[labelKey]}</option>`).join('');
+}
+
+function getSelectedValue(selectId, items) {
+  const sel = $(selectId);
+  return sel && sel.value !== '' ? items[parseInt(sel.value, 10)] : null;
+}
+
+function optimize() {
+  const gpu = getSelectedValue('gpu', gpus);
+  const cpu = getSelectedValue('cpu', cpus);
+  const game = getSelectedValue('game', games);
+  let targetFps = parseInt($('target-fps')?.value || '144', 10);
+  if ($('target-fps')?.value === 'custom') {
+    targetFps = parseInt($('custom-fps')?.value || '144', 10);
+  }
+  if (!gpu || !cpu || !game || !targetFps) return;
+
+  const config = { ramCapacity: 16, ramType: 'ddr5', ramSpeed: 6000, ramChannel: 'dual', storage: 'nvme', resolution: '1080p', preset: 'high', rtEnabled: false, upscaling: 'none', resolutionScale: 100, frameCap: 0, monitorHz: 144, vramLimit: 0, os: 'windows' };
+  const result = window.RunFpsEngine.calculateFPS(config, game, gpu, cpu);
+  const currentFps = result.avgFps;
+
+  const resultsEl = $('optimizer-results');
+  resultsEl.classList.remove('hidden');
+  resultsEl.focus();
+  $('current-fps-display').textContent = currentFps;
+  $('target-fps-display').textContent = targetFps;
+
+  if (currentFps >= targetFps) {
+    $('fps-progress').style.width = '100%';
+    $('optimizer-verdict').textContent = i18n.noChanges;
+    $('optimizer-changes').classList.add('hidden');
+    return;
+  }
+
+  const progress = Math.min(100, (currentFps / targetFps) * 100);
+  $('fps-progress').style.width = `${progress}%`;
+
+  const changes = window.RunFpsEngine.optimizeSettings(config, game, gpu, cpu, targetFps);
+  if (!changes || changes.length === 0) {
+    $('optimizer-verdict').textContent = i18n.cannotReach;
+    $('optimizer-changes').classList.add('hidden');
+    return;
+  }
+
+  $('optimizer-verdict').textContent = `${changes.length} ${i18n.recommendedChanges.toLowerCase()}`;
+  $('optimizer-changes').classList.remove('hidden');
+
+  const table = $('changes-table');
+  table.innerHTML = changes.map(c => `
+    <div class="flex items-center justify-between py-1.5 border-b border-hairline dark:border-dark-hairline last:border-b-0">
+      <div>
+        <div class="text-sm text-ink dark:text-dark-ink font-medium">${c.setting}</div>
+        <div class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.setting}: ${c.from} &rarr; ${c.to}</div>
+      </div>
+      <span class="text-sm font-mono font-medium text-emerald-600 dark:text-emerald-400">+${c.fpsGain} ${i18n.fpsGain}</span>
+    </div>
+  `).join('');
+
+  const finalFps = Math.min(targetFps, currentFps + changes.reduce((sum, c) => sum + c.fpsGain, 0));
+  $('final-fps-display').textContent = `${finalFps} ${i18n.fps}`;
+}
+</script>
+
+</Layout>
+

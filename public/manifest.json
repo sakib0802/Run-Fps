@@ -1,0 +1,17 @@
+{
+  "name": "RunFps",
+  "short_name": "RunFps",
+  "description": "GPU and CPU benchmark database — compare performance, estimate FPS, and find the best hardware for your games.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

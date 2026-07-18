@@ -1,0 +1,195 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import { useTranslations, locales } from '../../../../i18n/utils.js';
+import { cpus } from '../../../../data/cpus.json';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+
+const brands = [...new Set(cpus.map(c => c.brand))];
+const tiers = [...new Set(cpus.map(c => c.tier))];
+const sorted = [...cpus].sort((a, b) => b.score - a.score);
+const ui = {
+  showMore: t('benchmarks.cpu.showMore'),
+  search: t('benchmarks.cpu.search'),
+  count: t('benchmarks.cpu.count', { count: '{n}' }),
+  countOf: t('benchmarks.cpu.countOf', { filtered: '{f}', total: '{t}' })
+};
+---
+
+<Layout title={t('benchmarks.cpu.title')} description={t('benchmarks.cpu.description')}>
+
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('benchmarks.cpu.heading')}</h1>
+    <p class="text-sm text-mid-gray dark:text-dark-mid-gray mt-1">{t('benchmarks.cpu.subtitle', { count: cpus.length })}</p>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button data-brand="all" class="brand-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120" aria-pressed="true">{t('benchmarks.cpu.allBrands')}</button>
+    {brands.map(b => (
+      <button data-brand={b} class="brand-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120 hover:bg-hairline dark:hover:bg-dark-hairline" aria-pressed="false">{b.charAt(0).toUpperCase() + b.slice(1)}</button>
+    ))}
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button data-tier="all" class="tier-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120" aria-pressed="true">{t('benchmarks.cpu.allTiers')}</button>
+    {tiers.map(t => (
+      <button data-tier={t} class="tier-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120 hover:bg-hairline dark:hover:bg-dark-hairline" aria-pressed="false">{t.charAt(0).toUpperCase() + t.slice(1)}</button>
+    ))}
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+    <label for="cpu-search" class="sr-only">{t('benchmarks.cpu.search')}</label>
+    <input type="text" id="cpu-search" placeholder={t('benchmarks.cpu.search')} class="flex-1 w-full sm:max-w-xs px-4 py-2 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:ring-1 focus:ring-ember transition-colors duration-150" />
+    <label for="cpu-sort" class="sr-only">{t('misc.sort')}</label>
+    <select id="cpu-sort" class="px-3 py-2 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none appearance-none">
+      <option value="score-desc">{t('benchmarks.cpu.sortScoreDesc')}</option>
+      <option value="score-asc">{t('benchmarks.cpu.sortScoreAsc')}</option>
+      <option value="cores-desc">{t('benchmarks.cpu.sortCoresDesc')}</option>
+      <option value="tdp-asc">{t('benchmarks.cpu.sortTdpAsc')}</option>
+      <option value="year-desc">{t('benchmarks.cpu.sortYearDesc')}</option>
+      <option value="name-asc">{t('benchmarks.cpu.sortNameAsc')}</option>
+    </select>
+  </div>
+
+  <p id="cpu-result-count" class="text-xs text-mid-gray dark:text-dark-mid-gray font-mono" aria-live="polite" aria-atomic="true"></p>
+
+  <div id="cpu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+  <div id="see-more-container" class="mt-6 text-center hidden">
+    <button id="see-more-btn" class="px-5 py-2 bg-canvas dark:bg-dark-paper text-ink dark:text-dark-ink text-sm font-medium rounded-pill border border-hairline dark:border-dark-hairline cursor-pointer hover:scale-[1.02] transition-all duration-120">{ui.showMore}</button>
+  </div>
+</div>
+
+<script type="application/json" id="cpus-data" set:html={JSON.stringify(sorted)}></script>
+<script type="application/json" id="cpu-i18n" set:html={JSON.stringify(ui)}></script>
+<script is:inline>
+const ui = JSON.parse(document.getElementById('cpu-i18n').textContent);
+const cpus = JSON.parse(document.getElementById('cpus-data').textContent);
+const cpuGrid = document.getElementById('cpu-grid');
+const countEl = document.getElementById('cpu-result-count');
+const searchEl = document.getElementById('cpu-search');
+const sortEl = document.getElementById('cpu-sort');
+
+let activeBrand = 'all';
+let activeTier = 'all';
+let searchQuery = '';
+let sortBy = 'score-desc';
+let visibleCount = 24;
+const PAGE_SIZE = 24;
+
+function render() {
+  let filtered = cpus.filter(c => {
+    const matchesBrand = activeBrand === 'all' || c.brand === activeBrand;
+    const matchesTier = activeTier === 'all' || c.tier === activeTier;
+    const matchesSearch = c.name.toLowerCase().includes(searchQuery);
+    return matchesBrand && matchesTier && matchesSearch;
+  });
+
+  filtered.sort((a, b) => {
+    switch (sortBy) {
+      case 'score-asc': return a.score - b.score;
+      case 'cores-desc': return b.cores - a.cores;
+      case 'tdp-asc': return a.tdp - b.tdp;
+      case 'year-desc': return b.launchYear - a.launchYear;
+      case 'name-asc': return a.name.localeCompare(b.name);
+      default: return b.score - a.score;
+    }
+  });
+
+  countEl.textContent = filtered.length === cpus.length ? ui.count.replace('{n}', cpus.length) : ui.countOf.replace('{f}', filtered.length).replace('{t}', cpus.length);
+
+  const show = filtered.slice(0, visibleCount);
+  cpuGrid.innerHTML = show.map(c => {
+    const brandColor = c.brand === 'intel' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    const barColor = c.score >= 80 ? 'bg-emerald-500' : c.score >= 60 ? 'bg-amber-500' : c.score >= 40 ? 'bg-orange-500' : 'bg-red-500';
+    return `<a href="${window.location.pathname.replace(/\/benchmarks\/cpu\/?$/, '/benchmarks/cpu')}/${c.id}" class="card flex flex-col gap-3 no-underline group">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-display text-base font-medium text-ink dark:text-dark-ink">${c.name}</h2>
+          <span class="text-xs text-mid-gray dark:text-dark-mid-gray">${c.brand} &middot; ${c.generation}</span>
+        </div>
+        <span class="badge text-xs ${brandColor}">${c.brand}</span>
+      </div>
+      <div>
+        <div class="flex justify-between text-xs font-mono mb-1">
+          <span class="text-mid-gray dark:text-dark-mid-gray">${c.score}</span>
+          <span class="text-ink dark:text-dark-ink font-semibold">${c.score}/100</span>
+        </div>
+        <div class="h-2 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+          <div class="h-full rounded-full ${barColor}" style="width:${c.score}%"></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-mid-gray dark:text-dark-mid-gray font-mono">
+        <span>${c.cores}C / ${c.threads}T</span>
+        <span>${c.tdp}W</span>
+        <span>${c.launchYear}</span>
+      </div>
+    </a>`;
+  }).join('');
+
+  const seeMore = document.getElementById('see-more-container');
+  if (filtered.length > visibleCount) {
+    const remaining = filtered.length - visibleCount;
+    document.getElementById('see-more-btn').textContent = `${ui.showMore} (${remaining})`;
+    seeMore.classList.remove('hidden');
+  } else {
+    seeMore.classList.add('hidden');
+  }
+}
+
+document.getElementById('see-more-btn')?.addEventListener('click', () => {
+  visibleCount += PAGE_SIZE;
+  render();
+});
+
+document.querySelectorAll('.brand-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.brand-filter').forEach(b => {
+      b.className = 'brand-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120 hover:bg-hairline dark:hover:bg-dark-hairline';
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.className = 'brand-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120';
+    btn.setAttribute('aria-pressed', 'true');
+    activeBrand = btn.dataset.brand;
+    visibleCount = PAGE_SIZE;
+    render();
+  });
+});
+
+document.querySelectorAll('.tier-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tier-filter').forEach(b => {
+      b.className = 'tier-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120 hover:bg-hairline dark:hover:bg-dark-hairline';
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.className = 'tier-filter px-3 py-1.5 text-sm font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120';
+    btn.setAttribute('aria-pressed', 'true');
+    activeTier = btn.dataset.tier;
+    visibleCount = PAGE_SIZE;
+    render();
+  });
+});
+
+searchEl.addEventListener('input', function() {
+  searchQuery = this.value.toLowerCase();
+  visibleCount = PAGE_SIZE;
+  render();
+});
+
+sortEl.addEventListener('change', function() {
+  sortBy = this.value;
+  visibleCount = PAGE_SIZE;
+  render();
+});
+
+render();
+</script>
+
+</Layout>
+

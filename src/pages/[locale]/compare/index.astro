@@ -1,0 +1,296 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
+import { useTranslations, locales } from '../../../i18n/utils.js';
+import { gpus } from '../../../data/gpus.json';
+import { cpus } from '../../../data/cpus.json';
+import { games } from '../../../data/games.json';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+
+const sortedGpus = [...gpus].sort((a, b) => b.score - a.score);
+const sortedCpus = [...cpus].sort((a, b) => b.score - a.score);
+const topGames = games.slice(0, 10);
+const refCpu = { id: 'ryzen-7-7800x3d', name: 'Ryzen 7 7800X3D', brand: 'amd', score: 92 };
+const refGpu = { id: 'rtx-4090', name: 'RTX 4090', brand: 'nvidia', score: 96, vram: 24 };
+
+const ui = {
+  close: t('compare.close'),
+  specs: t('compare.specs'),
+  games: t('compare.games'),
+  score: t('compare.score'),
+  fpsComparison: t('compare.fpsComparison'),
+  noSelection: t('compare.noSelection'),
+  sameItem: t('compare.sameItem'),
+  performance: t('compare.performance'),
+  vram: t('compare.vram'),
+  tdp: t('compare.tdp'),
+  launchYear: t('compare.launchYear'),
+  tier: t('compare.tier'),
+  cores: t('compare.cores'),
+  threads: t('compare.threads'),
+  fps: t('misc.fps')
+};
+---
+
+<Layout title={t('compare.title')} description={t('compare.description')}>
+
+<script type="application/json" id="compare-gpus" set:html={JSON.stringify(sortedGpus)}></script>
+<script type="application/json" id="compare-cpus" set:html={JSON.stringify(sortedCpus)}></script>
+<script type="application/json" id="compare-games" set:html={JSON.stringify(topGames)}></script>
+<script type="application/json" id="compare-refs" set:html={JSON.stringify({ refCpu, refGpu })}></script>
+<script type="application/json" id="compare-i18n" set:html={JSON.stringify(ui)}></script>
+
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('compare.heading')}</h1>
+    <p class="text-sm text-mid-gray dark:text-dark-mid-gray mt-1">{t('compare.subtitle')}</p>
+  </div>
+
+  <div class="flex gap-2" role="tablist" aria-label="Compare type">
+    <button id="tab-gpu" class="compare-tab flex-1 sm:flex-none px-6 py-2 text-sm font-medium rounded-pill cursor-pointer transition-all duration-120" role="tab" aria-selected="true" aria-controls="panel-gpu" tabindex="0">{t('compare.gpuVsGpu')}</button>
+    <button id="tab-cpu" class="compare-tab flex-1 sm:flex-none px-6 py-2 text-sm font-medium rounded-pill cursor-pointer transition-all duration-120" role="tab" aria-selected="false" aria-controls="panel-cpu" tabindex="-1">{t('compare.cpuVsCpu')}</button>
+  </div>
+
+  <div id="panel-gpu" role="tabpanel" aria-labelledby="tab-gpu">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="card">
+        <label class="block text-sm font-medium text-ink dark:text-dark-ink mb-2">{t('compare.gpu1')}</label>
+        <button id="trigger-gpu-1" class="trigger-btn w-full text-left px-4 py-3 text-sm rounded-pill border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray cursor-pointer hover:border-ember dark:hover:border-ember transition-all duration-120 flex items-center justify-between gap-2" data-selected="false">
+          <span id="label-gpu-1" class="truncate">{t('compare.selectGpu')}</span>
+          <Icon name="lucide:chevron-down" size={16} class="chevron shrink-0 text-mid-gray dark:text-dark-mid-gray transition-transform duration-200" />
+        </button>
+      </div>
+      <div class="card">
+        <label class="block text-sm font-medium text-ink dark:text-dark-ink mb-2">{t('compare.gpu2')}</label>
+        <button id="trigger-gpu-2" class="trigger-btn w-full text-left px-4 py-3 text-sm rounded-pill border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray cursor-pointer hover:border-ember dark:hover:border-ember transition-all duration-120 flex items-center justify-between gap-2" data-selected="false">
+          <span id="label-gpu-2" class="truncate">{t('compare.selectGpu2')}</span>
+          <Icon name="lucide:chevron-down" size={16} class="chevron shrink-0 text-mid-gray dark:text-dark-mid-gray transition-transform duration-200" />
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-cpu" role="tabpanel" aria-labelledby="tab-cpu" class="hidden">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="card">
+        <label class="block text-sm font-medium text-ink dark:text-dark-ink mb-2">{t('compare.cpu1')}</label>
+        <button id="trigger-cpu-1" class="trigger-btn w-full text-left px-4 py-3 text-sm rounded-pill border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray cursor-pointer hover:border-ember dark:hover:border-ember transition-all duration-120 flex items-center justify-between gap-2" data-selected="false">
+          <span id="label-cpu-1" class="truncate">{t('compare.selectCpu')}</span>
+          <Icon name="lucide:chevron-down" size={16} class="chevron shrink-0 text-mid-gray dark:text-dark-mid-gray transition-transform duration-200" />
+        </button>
+      </div>
+      <div class="card">
+        <label class="block text-sm font-medium text-ink dark:text-dark-ink mb-2">{t('compare.cpu2')}</label>
+        <button id="trigger-cpu-2" class="trigger-btn w-full text-left px-4 py-3 text-sm rounded-pill border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray cursor-pointer hover:border-ember dark:hover:border-ember transition-all duration-120 flex items-center justify-between gap-2" data-selected="false">
+          <span id="label-cpu-2" class="truncate">{t('compare.selectCpu2')}</span>
+          <Icon name="lucide:chevron-down" size={16} class="chevron shrink-0 text-mid-gray dark:text-dark-mid-gray transition-transform duration-200" />
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="duplicate-notification" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 bg-paper dark:bg-dark-paper text-mid-gray dark:text-dark-mid-gray text-sm font-medium rounded-pill border border-hairline dark:border-dark-hairline shadow-lg transition-all duration-300" role="alert"></div>
+
+  <div id="selector-panel" class="hidden card p-4 sm:p-5">
+    <div class="flex items-center justify-between mb-4">
+      <span id="selector-panel-title" class="font-display text-sm font-semibold text-ink dark:text-dark-ink">Select</span>
+      <button id="selector-panel-close" class="w-7 h-7 flex items-center justify-center rounded-pill text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink hover:bg-hairline/50 dark:hover:bg-dark-hairline/50 transition-all duration-120 cursor-pointer" aria-label="Close">
+        <Icon name="lucide:x" size={15} />
+      </button>
+    </div>
+    <input type="text" id="selector-search" placeholder="Search..." class="w-full px-3 py-1.5 mb-3 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember transition-colors duration-150" />
+    <div id="selector-list" class="max-h-64 overflow-y-auto space-y-0.5"></div>
+  </div>
+
+  <div id="compare-results" class="hidden space-y-6" aria-live="polite">
+    <div class="card">
+      <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-4">{ui.specs}</h2>
+      <div id="specs-table" class="text-sm"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="font-display text-sm font-medium text-ink dark:text-dark-ink mb-4">{ui.fpsComparison}</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-hairline dark:border-dark-hairline">
+              <th class="text-left py-2 pr-4 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">Game</th>
+              <th id="result-label-1" class="text-right px-2 py-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">--</th>
+              <th id="result-label-2" class="text-right px-2 py-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">--</th>
+              <th id="result-diff" class="text-right pl-2 py-2 font-mono text-xs text-mid-gray dark:text-dark-mid-gray font-medium">Diff</th>
+            </tr>
+          </thead>
+          <tbody id="fps-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+const i18n = JSON.parse(document.getElementById('compare-i18n').textContent);
+
+const gpus = JSON.parse(document.getElementById('compare-gpus').textContent);
+const cpus = JSON.parse(document.getElementById('compare-cpus').textContent);
+const topGames = JSON.parse(document.getElementById('compare-games').textContent);
+const refs = JSON.parse(document.getElementById('compare-refs').textContent);
+
+const $ = id => document.getElementById(id);
+
+let activeTab = 'gpu';
+let activeSlot = null;
+let selected = { 'gpu-1': null, 'gpu-2': null, 'cpu-1': null, 'cpu-2': null };
+
+function tabClick(e) {
+  const tab = e.currentTarget;
+  const panelId = tab.getAttribute('aria-controls');
+  document.querySelectorAll('.compare-tab').forEach(t => {
+    t.setAttribute('aria-selected', 'false');
+    t.className = t.className.replace(/bg-ink[^\s]* text-paper[^\s]*/, '') + ' bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline';
+    t.setAttribute('tabindex', '-1');
+  });
+  tab.setAttribute('aria-selected', 'true');
+  tab.setAttribute('tabindex', '0');
+  tab.className = tab.className.replace(/bg-canvas[^\s]* dark:bg-dark-canvas[^\s]* text-mid-gray[^\s]* dark:text-dark-mid-gray[^\s]* border[^\s]* border-hairline[^\s]* dark:border-dark-hairline/, '') + ' bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas border-0';
+  document.querySelectorAll('[role="tabpanel"]').forEach(p => p.classList.add('hidden'));
+  $(panelId).classList.remove('hidden');
+  activeTab = panelId.replace('panel-', '');
+  updateResults();
+}
+
+document.querySelectorAll('.compare-tab').forEach(t => t.addEventListener('click', tabClick));
+document.querySelectorAll('.compare-tab').forEach(t => t.addEventListener('keydown', e => {
+  const tabs = [...document.querySelectorAll('.compare-tab')];
+  const idx = tabs.indexOf(e.currentTarget);
+  if (e.key === 'ArrowRight') { e.preventDefault(); tabs[(idx + 1) % tabs.length].click(); tabs[(idx + 1) % tabs.length].focus(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); tabs[(idx - 1 + tabs.length) % tabs.length].click(); tabs[(idx - 1 + tabs.length) % tabs.length].focus(); }
+}));
+
+document.querySelectorAll('.trigger-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    activeSlot = this.id.replace('trigger-', '');
+    const isGpu = activeSlot.startsWith('gpu-');
+    const items = isGpu ? gpus : cpus;
+    const title = isGpu ? (activeSlot === 'gpu-1' ? 'GPU 1' : 'GPU 2') : (activeSlot === 'cpu-1' ? 'CPU 1' : 'CPU 2');
+    $('selector-panel-title').textContent = title;
+    const list = $('selector-list');
+    list.innerHTML = items.map((item, i) => `<button data-index="${i}" class="selector-item w-full text-left px-3 py-2 text-sm rounded-lg text-ink dark:text-dark-ink hover:bg-hairline/50 dark:hover:bg-dark-hairline/50 cursor-pointer border-0 bg-transparent transition-colors duration-120">${item.name}</button>`).join('');
+    $('selector-search').value = '';
+    $('selector-search').focus();
+    $('selector-panel').classList.remove('hidden');
+  });
+});
+
+$('selector-panel-close').addEventListener('click', () => $('selector-panel').classList.add('hidden'));
+
+$('selector-search').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.selector-item').forEach(el => {
+    el.classList.toggle('hidden', !el.textContent.toLowerCase().includes(q));
+  });
+});
+
+$('selector-list').addEventListener('click', function(e) {
+  const item = e.target.closest('.selector-item');
+  if (!item) return;
+  const idx = parseInt(item.dataset.index, 10);
+  const isGpu = activeSlot.startsWith('gpu-');
+  const items = isGpu ? gpus : cpus;
+  const chosen = items[idx];
+
+  const notify = $('duplicate-notification');
+  const otherSlot = activeSlot === 'gpu-1' ? 'gpu-2' : activeSlot === 'gpu-2' ? 'gpu-1' : activeSlot === 'cpu-1' ? 'cpu-2' : 'cpu-1';
+  if (selected[otherSlot] && selected[otherSlot].id === chosen.id) {
+    notify.textContent = i18n.sameItem;
+    notify.classList.remove('hidden');
+    setTimeout(() => notify.classList.add('hidden'), 3000);
+    return;
+  }
+
+  selected[activeSlot] = chosen;
+  const labelId = 'label-' + activeSlot;
+  const triggerId = 'trigger-' + activeSlot;
+  $(labelId).textContent = chosen.name;
+  $(triggerId).dataset.selected = 'true';
+  $(triggerId).classList.add('border-ember', 'dark:border-ember');
+  $(triggerId).classList.remove('text-mid-gray', 'dark:text-dark-mid-gray');
+  $(triggerId).querySelector('span').classList.add('text-ink', 'dark:text-dark-ink');
+  $('selector-panel').classList.add('hidden');
+  updateResults();
+});
+
+function updateResults() {
+  const slot1 = activeTab + '-1';
+  const slot2 = activeTab + '-2';
+  const item1 = selected[slot1];
+  const item2 = selected[slot2];
+  if (!item1 || !item2) {
+    $('compare-results')?.classList.add('hidden');
+    return;
+  }
+  $('compare-results')?.classList.remove('hidden');
+  $('result-label-1').textContent = item1.name;
+  $('result-label-2').textContent = item2.name;
+
+  const isGpu = activeTab === 'gpu';
+  const specsHtml = isGpu ? `
+    <div class="grid grid-cols-3 gap-4">
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.performance}</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item1.score}/100</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item2.score}/100</div>
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.score}</div>
+      <div class="h-2 rounded-full bg-canvas dark:bg-dark-canvas overflow-hidden"><div class="h-full rounded-full ${item1.score >= 80 ? 'bg-emerald-500' : item1.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}" style="width:${item1.score}%"></div></div>
+      <div class="h-2 rounded-full bg-canvas dark:bg-dark-canvas overflow-hidden"><div class="h-full rounded-full ${item2.score >= 80 ? 'bg-emerald-500' : item2.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}" style="width:${item2.score}%"></div></div>
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.vram}</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item1.vram} GB</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item2.vram} GB</div>
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">TDP</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item1.tdp}W</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item2.tdp}W</div>
+    </div>
+  ` : `
+    <div class="grid grid-cols-3 gap-4">
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.performance}</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item1.score}/100</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item2.score}/100</div>
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.score}</div>
+      <div class="h-2 rounded-full bg-canvas dark:bg-dark-canvas overflow-hidden"><div class="h-full rounded-full ${item1.score >= 80 ? 'bg-emerald-500' : item1.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}" style="width:${item1.score}%"></div></div>
+      <div class="h-2 rounded-full bg-canvas dark:bg-dark-canvas overflow-hidden"><div class="h-full rounded-full ${item2.score >= 80 ? 'bg-emerald-500' : item2.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}" style="width:${item2.score}%"></div></div>
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.cores}</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item1.cores}</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item2.cores}</div>
+      <div class="text-mid-gray dark:text-dark-mid-gray font-mono">${i18n.threads}</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item1.threads}</div>
+      <div class="text-right font-mono text-ink dark:text-dark-ink">${item2.threads}</div>
+    </div>
+  `;
+  $('specs-table').innerHTML = specsHtml;
+
+  const refScore = isGpu ? refs.refGpu.score : refs.refCpu.score;
+  const fpsBody = $('fps-table-body');
+  fpsBody.innerHTML = topGames.map(game => {
+    const engine = window.RunFpsEngine;
+    if (!engine) return '';
+    const config = { ramCapacity: 16, ramType: 'ddr5', ramSpeed: 6000, ramChannel: 'dual', storage: 'nvme', resolution: '1080p', preset: 'high', rtEnabled: false, upscaling: 'none', resolutionScale: 100, frameCap: 0, monitorHz: 144, vramLimit: 0, os: 'windows' };
+    const res1 = engine.calculateFPS(config, game, isGpu ? item1 : refs.refGpu, isGpu ? refs.refCpu : item1);
+    const res2 = engine.calculateFPS(config, game, isGpu ? item2 : refs.refGpu, isGpu ? refs.refCpu : item2);
+    const diff = res1.avgFps - res2.avgFps;
+    const diffClass = diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : diff < 0 ? 'text-red-600 dark:text-red-400' : '';
+    return `<tr class="border-b border-hairline dark:border-dark-hairline">
+      <td class="py-2 pr-4 text-ink dark:text-dark-ink font-medium">${game.title}</td>
+      <td class="text-right px-2 py-2 font-mono text-ink dark:text-dark-ink">${res1.avgFps}</td>
+      <td class="text-right px-2 py-2 font-mono text-ink dark:text-dark-ink">${res2.avgFps}</td>
+      <td class="text-right pl-2 py-2 font-mono ${diffClass}">${diff > 0 ? '+' : ''}${diff}</td>
+    </tr>`;
+  }).join('');
+}
+</script>
+
+</Layout>
+

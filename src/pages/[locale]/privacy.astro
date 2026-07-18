@@ -1,0 +1,45 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations, locales } from '../../i18n/utils.js';
+
+export async function getStaticPaths() {
+  return locales.map(locale => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const { t } = useTranslations(locale);
+---
+
+<Layout title={t('privacy.title')} description={t('privacy.description')}>
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div>
+      <h1 class="font-display text-2xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('privacy.heading')}</h1>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray mt-1">{t('privacy.lastUpdated')}</p>
+    </div>
+
+    <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('privacy.intro')}</p>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('privacy.thirdParty')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('privacy.thirdPartyText')}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('privacy.local')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('privacy.localText')}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('privacy.noTracking')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('privacy.noTrackingText')}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-ink dark:text-dark-ink mb-1">{t('privacy.noAccounts')}</p>
+      <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed">{t('privacy.noAccountsText')}</p>
+    </div>
+
+    <p class="text-sm text-mid-gray dark:text-dark-mid-gray leading-relaxed" set:html={t('privacy.questions', { email: '<a href="mailto:hello@runfps.com" class="text-ink dark:text-dark-ink underline underline-offset-2 hover:text-ember transition-colors duration-120">hello@runfps.com</a>' })}></p>
+  </div>
+</Layout>
+
