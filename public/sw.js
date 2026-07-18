@@ -1,5 +1,4 @@
 const CACHE_NAME = 'runfps-v5';
-const DATA_VERSION = 'v1';
 
 const PRECACHE_URLS = [
   '/en/',
@@ -54,9 +53,6 @@ const PRECACHE_URLS = [
   '/es/faq',
   '/es/benchmarks/gpu',
   '/es/benchmarks/cpu',
-  `/gpus.json?v=${DATA_VERSION}`,
-  `/cpus.json?v=${DATA_VERSION}`,
-  `/games.json?v=${DATA_VERSION}`,
   '/engine.js',
   '/images/bg-pattern.svg',
   '/fonts/SpaceGrotesk-Variable.woff2',
@@ -82,22 +78,6 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
-  // Stale-while-revalidate for JSON data — serve cached, update in background
-  if (url.pathname.endsWith('.json') && url.searchParams.has('v')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then((cache) => {
-        return cache.match(url.pathname).then((cached) => {
-          const fetchPromise = fetch(event.request).then((res) => {
-            cache.put(url.pathname, res.clone());
-            return res;
-          }).catch(() => cached);
-          return cached || fetchPromise;
-        });
-      })
     );
     return;
   }

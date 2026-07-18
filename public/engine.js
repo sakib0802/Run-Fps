@@ -143,9 +143,4 @@ export function optimizeSettings(currentFps, targetFps, game, result) {
   return { canReach: fps >= targetFps, changes, finalFps: Math.round(fps), qualityImpact: changes.length > 2 ? Math.max(0, 100 - changes.length * 8) : 100 };
 }
 
-// Backward compatibility for non-module scripts
-window.RunFpsEngine = {
-  calculateFPS, catmullRomInterpolate, calculateBottleneck,
-  optimizeSettings
-};
 

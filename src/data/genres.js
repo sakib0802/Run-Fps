@@ -34,7 +34,5 @@ export const genreColors = {
   "survival": "#92400e"
 };
 
-export const genreBadgeGenres = Object.keys(genreLabels);
-
-export const genreList = [...genreBadgeGenres];
+export const genreList = Object.keys(genreLabels);
 

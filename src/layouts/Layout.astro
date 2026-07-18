@@ -103,7 +103,6 @@ const htmlLang = currentLocale;
         }
       })();
     </script>
-    <script is:inline src="/engine.js" type="module"></script>
   </head>
   <body class="min-h-screen flex flex-col">
     <a href="#main-content" class="skip-link">{t('misc.skipToContent')}</a>
@@ -146,36 +145,14 @@ const htmlLang = currentLocale;
 
     <script>
       (function() {
-        if (!window._rtInit) {
-          window._rtInit = true;
-
-          document.addEventListener('click', function(e) {
-            if (e.button !== 0) return;
-            var link = e.target.closest('a[href]');
-            if (link) {
-              var url;
-              try { url = new URL(link.getAttribute('href'), location.origin); } catch(_) { return; }
-              if (url.pathname === location.pathname && url.search === location.search && url.hash === location.hash && url.origin === location.origin) {
-                e.preventDefault();
-                e.stopPropagation();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-            }
-          }, true);
-
-        }
-
         var bait = document.getElementById('ad-bait');
-        if (bait && (bait.offsetHeight === 0 || bait.offsetParent === null)) {
+        if (bait && !bait.offsetHeight) {
           var notice = document.getElementById('adblock-notice');
-          var dismiss = document.getElementById('adblock-dismiss');
           if (notice) {
             setTimeout(function() { notice.classList.remove('translate-y-full'); }, 1000);
-            if (dismiss) {
-              dismiss.addEventListener('click', function() {
-                notice.classList.add('translate-y-full');
-              });
-            }
+            document.getElementById('adblock-dismiss')?.addEventListener('click', function() {
+              notice.classList.add('translate-y-full');
+            });
           }
         }
       })();

@@ -21,6 +21,7 @@ const topGames = games.slice(0, 10);
 ---
 
 <Layout title={`${gpu.name} - ${t('benchmarks.gpu.title')}`} description={`${gpu.name} ${t('misc.estimatedFps')} ${topGames.length} games.`}>
+<script is:inline src="/engine.js" type="module"></script>
 
 <script type="application/json" id="games-data" set:html={JSON.stringify(topGames)}></script>
 <script type="application/json" id="gpu-data" set:html={JSON.stringify(gpu)}></script>

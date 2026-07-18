@@ -39,6 +39,7 @@ const ui = {
 ---
 
 <Layout title={t('compare.title')} description={t('compare.description')}>
+<script is:inline src="/engine.js" type="module"></script>
 
 <script type="application/json" id="compare-gpus" set:html={JSON.stringify(sortedGpus)}></script>
 <script type="application/json" id="compare-cpus" set:html={JSON.stringify(sortedCpus)}></script>

@@ -44,8 +44,7 @@ const ui = {
   osLinux: t('calculator.osLinux'),
   calculate: t('calculator.calculate'),
   placeholderText: t('calculator.placeholder'),
-  full: t('calculator.full'),
-  quick: t('calculator.quick'),
+
   gpu: t('calculator.gpu'),
   cpu: t('calculator.cpu'),
   game: t('calculator.game'),
@@ -69,35 +68,13 @@ const ui = {
 ---
 
 <Layout title={t('calculator.title')} description={t('calculator.description')}>
+<script is:inline src="/engine.js" type="module"></script>
 
 <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
   <div class="lg:col-span-2">
     <div class="card space-y-3">
       <h1 class="font-display text-xl font-semibold text-ink dark:text-dark-ink tracking-tight">{t('calculator.heading')}</h1>
       <p class="text-sm text-mid-gray dark:text-dark-mid-gray">{t('calculator.subtitle')}</p>
-
-      <div class="flex gap-2">
-        <button id="mode-full" class="flex-1 py-1.5 text-xs font-medium rounded-pill bg-ink text-paper dark:bg-dark-ink dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120">{t('calculator.full')}</button>
-        <button id="mode-quick" class="flex-1 py-1.5 text-xs font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120">{t('calculator.quick')}</button>
-      </div>
-
-      <div id="quick-fields" class="hidden space-y-3">
-        <div>
-          <label for="q-gpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('calculator.gpu')}</label>
-          <input type="text" id="q-gpu-search" placeholder={t('calculator.searchGpu')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
-          <select id="q-gpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
-        </div>
-        <div>
-          <label for="q-cpu" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('calculator.cpu')}</label>
-          <input type="text" id="q-cpu-search" placeholder={t('calculator.searchCpu')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
-          <select id="q-cpu" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
-        </div>
-        <div>
-          <label for="q-game" class="block text-sm font-medium text-ink dark:text-dark-ink mb-1.5">{t('calculator.game')}</label>
-          <input type="text" id="q-game-search" placeholder={t('calculator.searchGame')} class="w-full px-3 py-1.5 mb-1.5 bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink text-xs rounded-pill border border-hairline dark:border-dark-hairline outline-none focus:border-ember focus:ring-1 focus:ring-ember/30 transition-colors duration-150" />
-          <select id="q-game" class="w-full px-3 py-2 bg-canvas dark:bg-dark-canvas text-ink dark:text-dark-ink text-sm rounded-pill border border-hairline dark:border-dark-hairline outline-none"></select>
-        </div>
-      </div>
 
       <div id="full-fields" class="space-y-3">
         <div>
@@ -301,7 +278,45 @@ const ui = {
 <script type="application/json" id="calc-i18n" set:html={JSON.stringify(ui)}></script>
 
 <script type="module">
-import { setupFilteredSelect } from '../../data/searchable-select.js';
+function fuzzyMatch(text, query) {
+  text = text.toLowerCase();
+  query = query.toLowerCase().trim();
+  if (!query) return true;
+  let qi = 0;
+  for (let ti = 0; ti < text.length && qi < query.length; ti++) {
+    if (text[ti] === query[qi]) qi++;
+  }
+  return qi === query.length;
+}
+
+function setupFilteredSelect(inputId, selectId, items, labelKey) {
+  const input = document.getElementById(inputId);
+  const select = document.getElementById(selectId);
+  if (!input || !select) return;
+
+  input.addEventListener('input', () => {
+    const query = input.value;
+    const selectedValue = select.value;
+
+    select.innerHTML = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => fuzzyMatch(item[labelKey], query))
+      .map(({ item, index }) => `<option value="${index}">${item[labelKey]}</option>`)
+      .join('');
+
+    if (selectedValue && items[parseInt(selectedValue, 10)]) {
+      const stillVisible = [...select.options].some(o => o.value === selectedValue);
+      if (stillVisible) select.value = selectedValue;
+    }
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && select.options.length > 0) {
+      select.value = select.options[0].value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+}
 const i18n = JSON.parse(document.getElementById('calc-i18n').textContent);
 
 const $ = (id) => document.getElementById(id);
@@ -309,19 +324,7 @@ const $ = (id) => document.getElementById(id);
 let gpus = [], cpus = [], games = [];
 let _lastGpu = null, _lastCpu = null, _lastGame = null, _lastConfig = null;
 
-const _resultCache = new Map();
-function getCached(config, game, gpu, cpu) {
-  const key = `${game.id}|${(gpu.id || 'igpu_' + gpu.score)}|${cpu.id}|${config.resolution}|${config.preset}|${config.ramCapacity}|${config.ramType}|${config.storage}|${config.rtEnabled}|${config.upscaling}|${config.frameCap}|${config.os}`;
-  if (_resultCache.has(key)) return _resultCache.get(key);
-  const result = window.RunFpsEngine.calculateFPS(config, game, gpu, cpu);
-  _resultCache.set(key, result);
-  return result;
-}
 
-function debounce(fn, ms) {
-  let timer;
-  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
-}
 
 async function loadData() {
   gpus = JSON.parse(document.getElementById('gpus-data').textContent);
@@ -345,32 +348,12 @@ function populateSelect(selectId, items, labelKey, placeholder) {
     populateSelect('gpu', gpus, 'name', i18n.selectGpu || 'GPU');
     populateSelect('cpu', cpus, 'name', i18n.selectCpu || 'CPU');
     populateSelect('game', games, 'title', i18n.selectGame || 'game');
-    populateSelect('q-gpu', gpus, 'name', i18n.selectGpu || 'GPU');
-    populateSelect('q-cpu', cpus, 'name', i18n.selectCpu || 'CPU');
-    populateSelect('q-game', games, 'title', i18n.selectGame || 'game');
-
     setupFilteredSelect('gpu-search', 'gpu', gpus, 'name');
     setupFilteredSelect('cpu-search', 'cpu', cpus, 'name');
     setupFilteredSelect('game-search', 'game', games, 'title');
-    setupFilteredSelect('q-gpu-search', 'q-gpu', gpus, 'name');
-    setupFilteredSelect('q-cpu-search', 'q-cpu', cpus, 'name');
-    setupFilteredSelect('q-game-search', 'q-game', games, 'title');
 
     $('calc-skeleton')?.classList.add('hidden');
     $('calc-placeholder')?.classList.remove('hidden');
-
-    $('mode-full')?.addEventListener('click', () => {
-      $('full-fields').classList.remove('hidden');
-      $('quick-fields').classList.add('hidden');
-      $('mode-full').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120';
-      $('mode-quick').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120';
-    });
-    $('mode-quick')?.addEventListener('click', () => {
-      $('full-fields').classList.add('hidden');
-      $('quick-fields').classList.remove('hidden');
-      $('mode-quick').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-ink dark:bg-dark-ink text-paper dark:text-dark-canvas border-0 cursor-pointer transition-all duration-120';
-      $('mode-full').className = 'flex-1 py-1.5 text-xs font-medium rounded-pill bg-canvas dark:bg-dark-canvas text-mid-gray dark:text-dark-mid-gray border border-hairline dark:border-dark-hairline cursor-pointer transition-all duration-120';
-    });
 
     $('advanced-toggle')?.addEventListener('click', () => {
       const adv = $('advanced-options');
@@ -402,13 +385,6 @@ function getSelectedValue(selectId, items) {
 
 function readUrlParams() {
   const params = new URLSearchParams(location.search);
-  const setSelect = (id, param) => {
-    const val = params.get(param);
-    if (val !== null) {
-      const el = $(id);
-      if (el) { el.value = val; }
-    }
-  };
   const setSelectByLabel = (selectId, param, items, labelKey) => {
     const val = params.get(param);
     if (val !== null && items) {
@@ -416,82 +392,40 @@ function readUrlParams() {
       if (idx >= 0) $(selectId).value = '' + idx;
     }
   };
-  const mode = params.get('mode');
-  if (mode === 'quick') {
-    $('mode-quick')?.click();
-  } else {
-    $('mode-full')?.click();
-  }
   setSelectByLabel('gpu', 'gpu', gpus, 'name');
   setSelectByLabel('cpu', 'cpu', cpus, 'name');
   setSelectByLabel('game', 'game', games, 'title');
-  setSelectByLabel('q-gpu', 'gpu', gpus, 'name');
-  setSelectByLabel('q-cpu', 'cpu', cpus, 'name');
-  setSelectByLabel('q-game', 'game', games, 'title');
-  setSelect('ram-capacity', 'ram');
-  setSelect('resolution', 'resolution');
-  setSelect('preset', 'preset');
+  if ($('ram-capacity') && params.get('ram')) $('ram-capacity').value = params.get('ram');
+  if ($('resolution') && params.get('resolution')) $('resolution').value = params.get('resolution');
+  if ($('preset') && params.get('preset')) $('preset').value = params.get('preset');
 
-  const isQuick = !$('quick-fields').classList.contains('hidden');
-  const cpuSel = isQuick ? $('q-cpu') : $('cpu');
-  const gameSel = isQuick ? $('q-game') : $('game');
+  const cpuSel = $('cpu');
+  const gameSel = $('game');
   if (cpuSel?.value && gameSel?.value) {
     setTimeout(calculate, 100);
   }
 }
 
 function updateUrl() {
-  const isQuick = !$('quick-fields').classList.contains('hidden');
   const params = new URLSearchParams();
-  if (isQuick) params.set('mode', 'quick');
-  const gpu = getSelectedValue(isQuick ? 'q-gpu' : 'gpu', gpus);
-  const cpu = getSelectedValue(isQuick ? 'q-cpu' : 'cpu', cpus);
-  const game = getSelectedValue(isQuick ? 'q-game' : 'game', games);
+  const gpu = getSelectedValue('gpu', gpus);
+  const cpu = getSelectedValue('cpu', cpus);
+  const game = getSelectedValue('game', games);
   if (gpu) params.set('gpu', gpu.name.toLowerCase().replace(/\s+/g, '-'));
   if (cpu) params.set('cpu', cpu.name.toLowerCase().replace(/\s+/g, '-'));
   if (game) params.set('game', game.title.toLowerCase().replace(/\s+/g, '-'));
-  if (!isQuick) {
-    params.set('ram', $('ram-capacity')?.value || '16');
-    params.set('resolution', $('resolution')?.value || '1080p');
-    params.set('preset', $('preset')?.value || 'high');
-  }
+  params.set('ram', $('ram-capacity')?.value || '16');
+  params.set('resolution', $('resolution')?.value || '1080p');
+  params.set('preset', $('preset')?.value || 'high');
   const qs = params.toString();
   const url = qs ? `${location.pathname}?${qs}` : location.pathname;
   history.replaceState(null, '', url);
 }
 
 function calculate() {
-  const isQuick = !$('quick-fields').classList.contains('hidden');
-
-  let gpu, cpu, game, ramCapacity, ramType, resolution, preset, rt, upscaling, frameCap, storage, os;
-
-  if (isQuick) {
-    gpu = getSelectedValue('q-gpu', gpus);
-    cpu = getSelectedValue('q-cpu', cpus);
-    game = getSelectedValue('q-game', games);
-    ramCapacity = 16;
-    ramType = 'ddr5';
-    resolution = '1080p';
-    preset = 'high';
-    rt = false;
-    upscaling = 'none';
-    frameCap = 0;
-    storage = 'nvme';
-    os = 'windows';
-  } else {
-    gpu = getSelectedValue('gpu', gpus);
-    cpu = getSelectedValue('cpu', cpus);
-    game = getSelectedValue('game', games);
-    ramCapacity = parseInt($('ram-capacity')?.value || '16', 10);
-    ramType = $('ram-type')?.value || 'ddr5';
-    resolution = $('resolution')?.value || '1080p';
-    preset = $('preset')?.value || 'high';
-    rt = $('rt')?.value === 'true';
-    upscaling = $('upscaling')?.value || 'none';
-    frameCap = parseInt($('frame-cap')?.value || '0', 10);
-    storage = $('storage')?.value || 'nvme';
-    os = $('os')?.value || 'windows';
-  }
+  const gpu = getSelectedValue('gpu', gpus);
+  const cpu = getSelectedValue('cpu', cpus);
+  const game = getSelectedValue('game', games);
 
   if (!cpu || !game) {
     $('results').classList.add('hidden');
@@ -503,9 +437,10 @@ function calculate() {
     return;
   }
 
-  if (!gpu) {
+  let actualGpu = gpu;
+  if (!actualGpu) {
     if (cpu.igpuScore) {
-      gpu = { name: cpu.name + ' iGPU', score: cpu.igpuScore, vram: cpu.igpuScore >= 20 ? 4 : cpu.igpuScore >= 10 ? 2 : 1, brand: cpu.brand };
+      actualGpu = { name: cpu.name + ' iGPU', score: cpu.igpuScore, vram: cpu.igpuScore >= 20 ? 4 : cpu.igpuScore >= 10 ? 2 : 1, brand: cpu.brand };
     } else {
       $('results').classList.add('hidden');
       $('results-container').classList.remove('hidden');
@@ -519,12 +454,27 @@ function calculate() {
 
   updateUrl();
 
-  _lastGpu = gpu; _lastCpu = cpu; _lastGame = game;
-  const config = { ramCapacity, ramType, ramSpeed: 6000, ramChannel: 'dual', storage, resolution, preset, rtEnabled: rt, upscaling, resolutionScale: 100, frameCap, monitorHz: 144, vramLimit: 0, os };
+  _lastGpu = actualGpu; _lastCpu = cpu; _lastGame = game;
+  const config = {
+    ramCapacity: parseInt($('ram-capacity')?.value || '16', 10),
+    ramType: $('ram-type')?.value || 'ddr5',
+    ramSpeed: 6000,
+    ramChannel: 'dual',
+    storage: $('storage')?.value || 'nvme',
+    resolution: $('resolution')?.value || '1080p',
+    preset: $('preset')?.value || 'high',
+    rtEnabled: $('rt')?.value === 'true',
+    upscaling: $('upscaling')?.value || 'none',
+    resolutionScale: 100,
+    frameCap: parseInt($('frame-cap')?.value || '0', 10),
+    monitorHz: 144,
+    vramLimit: 0,
+    os: $('os')?.value || 'windows'
+  };
   _lastConfig = config;
-  const result = getCached(config, game, gpu, cpu);
+  const result = window.RunFpsEngine.calculateFPS(config, game, actualGpu, cpu);
 
-  showResults(result, gpu, cpu, game, config);
+  showResults(result, actualGpu, cpu, game, config);
 }
 
 function showResults(result, gpu, cpu, game, config) {
@@ -683,59 +633,61 @@ sliderResolutions.forEach((r, i) => {
   sliderLabels.appendChild(span);
 });
 
-let _sliderResult = null;
+let sliderTimer;
+$('res-slider')?.addEventListener('input', function() {
+  clearTimeout(sliderTimer);
+  const slider = this;
+  sliderTimer = setTimeout(() => {
+    if (!_lastGpu || !_lastCpu || !_lastGame || !_lastConfig) return;
+    const res = sliderResolutions[parseInt(slider.value, 10)];
+    const cfg = { ..._lastConfig, resolution: res };
+    const result = window.RunFpsEngine.calculateFPS(cfg, _lastGame, _lastGpu, _lastCpu);
 
-$('res-slider')?.addEventListener('input', debounce(function() {
-  if (!_lastGpu || !_lastCpu || !_lastGame || !_lastConfig) return;
-  const res = sliderResolutions[parseInt(this.value, 10)];
-  const cfg = { ..._lastConfig, resolution: res };
-  const result = getCached(cfg, _lastGame, _lastGpu, _lastCpu);
-  _sliderResult = result;
+    $('slider-fps').textContent = `${result.avgFps} ${i18n.fps}`;
 
-  $('slider-fps').textContent = `${result.avgFps} ${i18n.fps}`;
+    const fpsEl = $('fps-number');
+    fpsEl.textContent = result.avgFps;
+    $('p1-low').textContent = result.p1Low;
+    $('p01-low').textContent = result.p01Low;
+    $('fps-label').textContent = i18n.averageFps;
+    if (result.fpsCapped) {
+      $('fps-label').textContent = i18n.cappedAt.replace('{fps}', cfg.frameCap);
+    }
+    $('rating-badge').textContent = result.rating;
+    $('rating-badge').style.background = result.rating === 'Elite' || result.rating === 'High Refresh' ? '#0a0a0a' : result.rating === 'Smooth' ? '#171717' : result.rating === 'Playable' ? '#737373' : '#e7000b';
+    $('rating-badge').style.color = result.rating === 'Playable' || result.rating === 'Unplayable' ? '#ffffff' : '#fafafa';
 
-  const fpsEl = $('fps-number');
-  fpsEl.textContent = result.avgFps;
-  $('p1-low').textContent = result.p1Low;
-  $('p01-low').textContent = result.p01Low;
-  $('fps-label').textContent = i18n.averageFps;
-  if (result.fpsCapped) {
-    $('fps-label').textContent = i18n.cappedAt.replace('{fps}', cfg.frameCap);
-  }
-  $('rating-badge').textContent = result.rating;
-  $('rating-badge').style.background = result.rating === 'Elite' || result.rating === 'High Refresh' ? '#0a0a0a' : result.rating === 'Smooth' ? '#171717' : result.rating === 'Playable' ? '#737373' : '#e7000b';
-  $('rating-badge').style.color = result.rating === 'Playable' || result.rating === 'Unplayable' ? '#ffffff' : '#fafafa';
+    animateBar('cpu-bar', result.cpuLoad);
+    animateBar('gpu-bar', result.gpuLoad);
+    $('cpu-load-text').textContent = `${result.cpuLoad}%`;
+    $('gpu-load-text').textContent = `${result.gpuLoad}%`;
+    $('bottleneck-text').textContent = i18n.bottleneck.replace('{b}', result.bottleneck).replace('{p}', result.bottleneckPercent);
 
-  animateBar('cpu-bar', result.cpuLoad);
-  animateBar('gpu-bar', result.gpuLoad);
-  $('cpu-load-text').textContent = `${result.cpuLoad}%`;
-  $('gpu-load-text').textContent = `${result.gpuLoad}%`;
-  $('bottleneck-text').textContent = i18n.bottleneck.replace('{b}', result.bottleneck).replace('{p}', result.bottleneckPercent);
+    const resBreakdown = $('resolution-breakdown');
+    resBreakdown.innerHTML = '';
+    const resScales = { '720p': 1.25, '800p': 1.18, '1080p': 1.0, '1440p': 0.72, '4K': 0.45 };
+    const currentResScale = resScales[res] || 1.0;
+    for (const r2 of sliderResolutions) {
+      const fps = Math.round(result.avgFps * (resScales[r2] || 1.0) / currentResScale);
+      const barWidth = ((resScales[r2] || 1.0) / 1.25) * 100;
+      const isSelected = r2 === res;
+      resBreakdown.innerHTML += `
+        <div class="${isSelected ? 'opacity-100' : 'opacity-60'}">
+          <div class="flex justify-between text-xs font-mono mb-0.5">
+            <span class="text-mid-gray dark:text-dark-mid-gray">${r2}</span>
+            <span class="text-ink dark:text-dark-ink font-medium">${fps} ${i18n.fps}</span>
+          </div>
+          <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+            <div class="h-full bg-mid-gray dark:bg-dark-mid-gray rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
+          </div>
+        </div>`;
+    }
 
-  const resBreakdown = $('resolution-breakdown');
-  resBreakdown.innerHTML = '';
-  const resScales = { '720p': 1.25, '800p': 1.18, '1080p': 1.0, '1440p': 0.72, '4K': 0.45 };
-  const currentResScale = resScales[res] || 1.0;
-  for (const r2 of sliderResolutions) {
-    const fps = Math.round(result.avgFps * (resScales[r2] || 1.0) / currentResScale);
-    const barWidth = ((resScales[r2] || 1.0) / 1.25) * 100;
-    const isSelected = r2 === res;
-    resBreakdown.innerHTML += `
-      <div class="${isSelected ? 'opacity-100' : 'opacity-60'}">
-        <div class="flex justify-between text-xs font-mono mb-0.5">
-          <span class="text-mid-gray dark:text-dark-mid-gray">${r2}</span>
-          <span class="text-ink dark:text-dark-ink font-medium">${fps} ${i18n.fps}</span>
-        </div>
-        <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
-          <div class="h-full bg-mid-gray dark:bg-dark-mid-gray rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
-        </div>
-      </div>`;
-  }
-
-  document.querySelectorAll('#slider-labels span').forEach((sp, i) => {
-    sp.className = i === parseInt(this.value, 10) ? 'text-ink dark:text-dark-ink font-medium' : '';
-  });
-}, 75));
+    document.querySelectorAll('#slider-labels span').forEach((sp, i) => {
+      sp.className = i === parseInt(slider.value, 10) ? 'text-ink dark:text-dark-ink font-medium' : '';
+    });
+  }, 75);
+});
 </script>
 
 </Layout>
