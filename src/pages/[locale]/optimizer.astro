@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
 import { useTranslations, locales } from '../../i18n/utils.js';
 import gpusData from '../../data/gpus.json';
 import cpusData from '../../data/cpus.json';
@@ -14,6 +15,7 @@ const { t } = useTranslations(locale);
 const ui = {
   noChanges: t('optimizer.noChanges'),
   cannotReach: t('optimizer.cannotReach'),
+  emptyState: t('optimizer.emptyState'),
   searchGpu: t('optimizer.searchGpu'),
   searchCpu: t('optimizer.searchCpu'),
   searchGame: t('optimizer.searchGame'),
@@ -81,6 +83,19 @@ const ui = {
   </div>
 
   <div class="lg:col-span-3">
+    <div id="optimizer-placeholder">
+      <div id="opt-skeleton" role="status" aria-live="polite" class="card space-y-4 p-6">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text" style="width:70%"></div>
+        <div class="skeleton skeleton-bar"></div>
+        <div class="skeleton skeleton-bar"></div>
+      </div>
+      <div id="opt-empty" class="card flex flex-col items-center justify-center py-16 text-center hidden">
+        <Icon name="lucide:sliders-horizontal" size={48} class="text-hairline dark:text-dark-hairline mb-4" />
+        <p class="text-mid-gray dark:text-dark-mid-gray text-sm">{ui.emptyState}</p>
+      </div>
+    </div>
+
     <div id="optimizer-results" class="hidden space-y-4" aria-live="polite" tabindex="-1">
       <div class="card">
         <div class="flex items-center justify-between mb-4">
@@ -185,6 +200,9 @@ async function loadData() {
     document.getElementById('custom-fps-container').classList.toggle('hidden', this.value !== 'custom');
   });
 
+  $('opt-skeleton')?.classList.add('hidden');
+  $('opt-empty')?.classList.remove('hidden');
+
   $('optimize-btn')?.addEventListener('click', optimize);
 
   document.addEventListener('keydown', (e) => {
@@ -219,6 +237,7 @@ function optimize() {
 
   const resultsEl = $('optimizer-results');
   resultsEl.classList.remove('hidden');
+  $('optimizer-placeholder')?.classList.add('hidden');
   resultsEl.focus();
   $('current-fps-display').textContent = currentFps;
   $('target-fps-display').textContent = targetFps;

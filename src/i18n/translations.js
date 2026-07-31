@@ -174,6 +174,7 @@ export const translations = {
       change: 'Change',
       fpsGain: 'FPS Gain',
       noChanges: 'Your system already meets the target. Enjoy!',
+      emptyState: 'Select your GPU, CPU, and a game to optimize.',
       cannotReach: 'Cannot reach target FPS with this hardware.'
     },
     bottleneck: {
@@ -633,6 +634,7 @@ export const translations = {
       change: 'Änderung',
       fpsGain: 'FPS-Gewinn',
       noChanges: 'Dein System erreicht bereits das Ziel. Viel Spaß!',
+      emptyState: 'Wähle deine GPU, CPU und ein Spiel, um zu optimieren.',
       cannotReach: 'Ziel-FPS mit dieser Hardware nicht erreichbar.'
     },
     bottleneck: {
@@ -1092,6 +1094,7 @@ export const translations = {
       change: 'Modification',
       fpsGain: 'Gain FPS',
       noChanges: 'Ton système atteint déjà l\'objectif. Profite bien !',
+      emptyState: 'Sélectionne ton GPU, ton CPU et un jeu à optimiser.',
       cannotReach: 'Impossible d\'atteindre le FPS cible avec ce matériel.'
     },
     bottleneck: {
@@ -1551,6 +1554,7 @@ export const translations = {
       change: 'Cambio',
       fpsGain: 'Ganancia FPS',
       noChanges: 'Tu sistema ya alcanza el objetivo. ¡Disfruta!',
+      emptyState: 'Selecciona tu GPU, tu CPU y un juego para optimizar.',
       cannotReach: 'No se puede alcanzar el FPS objetivo con este hardware.'
     },
     bottleneck: {
