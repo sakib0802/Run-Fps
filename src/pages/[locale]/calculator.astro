@@ -20,6 +20,9 @@ const ui = {
   fpsByPreset: t('calculator.fpsByPreset'),
   fpsByResolution: t('calculator.fpsByResolution'),
   upgradePath: t('calculator.upgradePath'),
+  upgradeGpu: t('calculator.upgradeGpu'),
+  upgradeCpu: t('calculator.upgradeCpu'),
+  topTierCpu: t('calculator.topTierCpu'),
   topTierGpu: t('calculator.topTierGpu'),
   tips: t('calculator.tips'),
   noTips: t('calculator.noTips'),
@@ -321,6 +324,32 @@ const i18n = JSON.parse(document.getElementById('calc-i18n').textContent);
 
 const $ = (id) => document.getElementById(id);
 
+const BAND_ORDER = ['entry', 'mid', 'high', 'top'];
+
+function scoreBand(score) {
+  if (score < 45) return 'entry';
+  if (score < 65) return 'mid';
+  if (score < 85) return 'high';
+  return 'top';
+}
+
+function pickUpgrades(current, pool, counterpart, count = 3) {
+  const curIdx = BAND_ORDER.indexOf(scoreBand(current.score));
+  const pairIdx = BAND_ORDER.indexOf(scoreBand(counterpart.score));
+  const targetIdx = Math.min(Math.max(curIdx + 1, pairIdx), BAND_ORDER.length - 1);
+  const targetBand = BAND_ORDER[targetIdx];
+  const cap = Math.round(counterpart.score * 1.5);
+  const inBand = pool
+    .filter(p => scoreBand(p.score) === targetBand && p.score > current.score)
+    .sort((a, b) => b.score - a.score);
+  const picks = inBand.filter(p => p.score <= cap);
+  for (const p of inBand) {
+    if (picks.length >= count) break;
+    if (!picks.includes(p)) picks.push(p);
+  }
+  return picks.slice(0, count);
+}
+
 let gpus = [], cpus = [], games = [];
 let _lastGpu = null, _lastCpu = null, _lastGame = null, _lastConfig = null;
 
@@ -561,29 +590,45 @@ function showResults(result, gpu, cpu, game, config) {
   }
 
   const upgradePath = $('upgrade-path');
-  upgradePath.innerHTML = '';
-  const currentScore = gpu.score;
-  const upgrades = gpus.filter(g => g.score > currentScore + 5).slice(0, 4);
-  if (upgrades.length > 0) {
-    for (const upg of upgrades) {
-      const fpsGain = Math.round(((upg.score / gpu.score) - 1) * 100);
-      const upgFps = Math.round(result.avgFps * (upg.score / gpu.score));
-      const maxFps = upgrades.reduce((max, u) => Math.max(max, Math.round(result.avgFps * (u.score / gpu.score))), 0);
-      const barWidth = (upgFps / maxFps) * 100;
-      upgradePath.innerHTML += `
-        <div>
-          <div class="flex justify-between text-xs font-mono mb-0.5">
-            <span class="text-ink dark:text-dark-ink">${upg.name}</span>
-            <span class="text-mid-gray dark:text-dark-mid-gray">+${fpsGain}% <span class="font-medium text-ink dark:text-dark-ink">${upgFps} ${i18n.fps}</span></span>
-          </div>
-          <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
-            <div class="h-full bg-ink-soft dark:bg-dark-ink-soft rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
-          </div>
-        </div>`;
+  const gpuUpgrades = pickUpgrades(gpu, gpus, cpu);
+  const cpuUpgrades = pickUpgrades(cpu, cpus, gpu);
+
+  const renderUpgradeRow = (upg, isCpu, barWidth) => {
+    const upgResult = window.RunFpsEngine.calculateFPS(config, game, isCpu ? gpu : upg, isCpu ? upg : cpu);
+    const gainPct = Math.round((upgResult.avgFps / result.avgFps - 1) * 100);
+    const gainFps = Math.round(upgResult.avgFps - result.avgFps);
+    const sub = isCpu
+      ? `${upg.generation} &middot; ${upg.cores}C/${upg.threads}T`
+      : `${upg.generation} &middot; ${upg.vram}GB VRAM`;
+    return `<div>
+      <div class="flex justify-between text-xs font-mono mb-0.5">
+        <span class="text-ink dark:text-dark-ink">${upg.name}</span>
+        <span class="text-mid-gray dark:text-dark-mid-gray">+${gainPct}% <span class="font-medium text-ink dark:text-dark-ink">${gainFps} ${i18n.fps}</span></span>
+      </div>
+      <div class="text-[11px] text-mid-gray dark:text-dark-mid-gray font-mono mb-1">${sub}</div>
+      <div class="h-1.5 bg-canvas dark:bg-dark-canvas rounded-full overflow-hidden">
+        <div class="h-full bg-ink-soft dark:bg-dark-ink-soft rounded-full transition-all duration-500" style="width:${barWidth}%"></div>
+      </div>
+    </div>`;
+  };
+
+  const renderUpgradeSection = (label, items, isCpu) => {
+    if (items.length === 0) {
+      return `<h3 class="text-xs font-semibold uppercase tracking-wide text-mid-gray dark:text-dark-mid-gray mb-2">${label}</h3>
+        <p class="text-xs text-mid-gray dark:text-dark-mid-gray">${isCpu ? i18n.topTierCpu : i18n.topTierGpu}</p>`;
     }
-  } else {
-    upgradePath.innerHTML = '<p class="text-xs text-mid-gray dark:text-dark-mid-gray">' + i18n.topTierGpu + '</p>';
-  }
+    const gains = items.map(u => {
+      const r = window.RunFpsEngine.calculateFPS(config, game, isCpu ? gpu : u, isCpu ? u : cpu);
+      return Math.round(r.avgFps - result.avgFps);
+    });
+    const maxGain = Math.max(...gains, 1);
+    return `<h3 class="text-xs font-semibold uppercase tracking-wide text-mid-gray dark:text-dark-mid-gray mb-2">${label}</h3>` +
+      items.map((u, i) => renderUpgradeRow(u, isCpu, (gains[i] / maxGain) * 100)).join('');
+  };
+
+  upgradePath.innerHTML =
+    renderUpgradeSection(i18n.upgradeGpu, gpuUpgrades, false) +
+    renderUpgradeSection(i18n.upgradeCpu, cpuUpgrades, true);
 
   const tips = $('tips');
   tips.innerHTML = '';
