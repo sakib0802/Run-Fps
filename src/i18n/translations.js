@@ -125,6 +125,9 @@ export const translations = {
       fpsByPreset: 'FPS by Preset',
       fpsByResolution: 'FPS by Resolution',
       upgradePath: 'Upgrade Path',
+      upgradeGpu: 'GPU Upgrade',
+      upgradeCpu: 'CPU Upgrade',
+      topTierCpu: 'You already have a top-tier CPU.',
       topTierGpu: 'You already have a top-tier GPU.',
       tips: 'Tips',
       noTips: 'Your system is well-balanced for this game. Enjoy the smooth gameplay!',
@@ -402,7 +405,7 @@ export const translations = {
         {
           id: 'upgrades',
           question: 'Can I trust the upgrade suggestions?',
-          answer: 'Upgrade suggestions are based purely on benchmark score comparisons. We show GPUs with higher scores than your current one and estimate the FPS gain. Actual performance uplift depends on your full system, but the relative ranking is a reliable indicator.'
+          answer: 'Upgrade suggestions pick the next sensible step above your current part and filter it so it pairs well with your other component — we never recommend jumping several tiers at once. The estimated FPS gain is computed by simulating your system with the upgraded part. Actual performance depends on your full system, but relative ranking is a reliable indicator.'
         },
         {
           id: 'comparison',
@@ -581,6 +584,9 @@ export const translations = {
       fpsByPreset: 'FPS nach Qualität',
       fpsByResolution: 'FPS nach Auflösung',
       upgradePath: 'Upgrade-Pfad',
+      upgradeGpu: 'GPU-Upgrade',
+      upgradeCpu: 'CPU-Upgrade',
+      topTierCpu: 'Du hast bereits eine CPU der Spitzenklasse.',
       topTierGpu: 'Du hast bereits eine High-End-GPU.',
       tips: 'Tipps',
       noTips: 'Dein System ist für dieses Spiel gut ausbalanciert. Viel Spaß!',
@@ -858,7 +864,7 @@ export const translations = {
         {
           id: 'upgrades',
           question: 'Kann ich den Upgrade-Vorschlägen vertrauen?',
-          answer: 'Upgrade-Vorschläge basieren ausschließlich auf Benchmark-Vergleichen. Wir zeigen GPUs mit höheren Werten als deine aktuelle und schätzen den FPS-Gewinn. Die tatsächliche Leistungssteigerung hängt von deinem gesamten System ab, aber die relative Rangfolge ist ein zuverlässiger Indikator.'
+          answer: 'Upgrade-Vorschläge wählen den nächsten sinnvollen Schritt über deinem aktuellen Bauteil und filtern so, dass er gut zu deiner anderen Komponente passt — wir empfehlen nie Sprünge über mehrere Stufen. Der geschätzte FPS-Gewinn wird berechnet, indem dein System mit dem aufgerüsteten Bauteil simuliert wird. Die tatsächliche Leistung hängt von deinem gesamten System ab, aber die relative Rangfolge ist ein zuverlässiger Indikator.'
         },
         {
           id: 'comparison',
@@ -1037,6 +1043,9 @@ export const translations = {
       fpsByPreset: 'FPS par qualité',
       fpsByResolution: 'FPS par résolution',
       upgradePath: 'Chemin d\'amélioration',
+      upgradeGpu: 'Amélioration du GPU',
+      upgradeCpu: 'Amélioration du CPU',
+      topTierCpu: 'Tu as déjà un CPU haut de gamme.',
       topTierGpu: 'Tu as déjà un GPU haut de gamme.',
       tips: 'Conseils',
       noTips: 'Ton système est bien équilibré pour ce jeu. Profite bien !',
@@ -1314,7 +1323,7 @@ export const translations = {
         {
           id: 'upgrades',
           question: 'Puis-je faire confiance aux suggestions de mise à niveau ?',
-          answer: 'Les suggestions de mise à niveau sont basées uniquement sur des comparaisons de scores de benchmark. Nous montrons les GPUs avec des scores plus élevés que le tien et estimons le gain de FPS. L\'amélioration réelle des performances dépend de l\'ensemble de ton système, mais le classement relatif est un indicateur fiable.'
+          answer: 'Les suggestions d\'amélioration choisissent le prochain pas logique au-dessus de ton composant actuel et le filtrent pour qu\'il s\'associe bien à ton autre composant — nous ne recommandons jamais de sauter plusieurs paliers à la fois. Le gain de FPS estimé est calculé en simulant ton système avec le composant amélioré. Les performances réelles dépendent de l\'ensemble du système, mais le classement relatif reste un indicateur fiable.'
         },
         {
           id: 'comparison',
@@ -1493,6 +1502,9 @@ export const translations = {
       fpsByPreset: 'FPS por calidad',
       fpsByResolution: 'FPS por resolución',
       upgradePath: 'Ruta de mejora',
+      upgradeGpu: 'Mejora de GPU',
+      upgradeCpu: 'Mejora de CPU',
+      topTierCpu: 'Ya tienes una CPU de gama alta.',
       topTierGpu: 'Ya tienes una GPU de primera categoría.',
       tips: 'Consejos',
       noTips: 'Tu sistema está bien equilibrado para este juego. ¡Disfruta!',
@@ -1770,7 +1782,7 @@ export const translations = {
         {
           id: 'upgrades',
           question: '¿Puedo confiar en las sugerencias de actualización?',
-          answer: 'Las sugerencias de actualización se basan puramente en comparaciones de puntuaciones de benchmark. Mostramos GPUs con puntuaciones más altas que la tuya y estimamos la ganancia de FPS. La mejora real del rendimiento depende de tu sistema completo, pero la clasificación relativa es un indicador confiable.'
+          answer: 'Las sugerencias de mejora eligen el siguiente paso lógico por encima de tu componente actual y lo filtran para que combine bien con tu otro componente — nunca recomendamos saltar varios niveles a la vez. La ganancia estimada de FPS se calcula simulando tu sistema con el componente mejorado. El rendimiento real depende de tu sistema completo, pero la clasificación relativa es un indicador fiable.'
         },
         {
           id: 'comparison',
