@@ -229,7 +229,7 @@ export const translations = {
         title: 'GPU Benchmarks - Performance Rankings',
         description: 'Compare {count} GPUs ranked by gaming performance.',
         heading: 'GPU Benchmarks',
-        subtitle: 'See how {count} GPUs rank for gaming — scores, specs, and FPS estimates for every card.',
+        subtitle: 'See how {count} GPUs rank for gaming — scores, specs, and what each card is best suited for.',
         allBrands: 'All',
         allTiers: 'All Tiers',
         search: 'Search GPUs...',
@@ -246,7 +246,9 @@ export const translations = {
         vram: 'VRAM',
         tdp: 'TDP',
         launchYear: 'Launch Year',
-        tier: 'Tier'
+        tier: 'Tier',
+        bestFor: 'Best for {res} gaming',
+        bestForEsports: 'Best for esports'
       },
       cpu: {
         title: 'CPU Benchmarks - Performance Rankings',
@@ -683,7 +685,7 @@ export const translations = {
         title: 'GPU-Benchmarks - Leistungsrangliste',
         description: 'Vergleiche {count} GPUs nach Spieleleistung geordnet.',
         heading: 'GPU-Benchmarks',
-        subtitle: 'Sieh, wie {count} GPUs für Spiele abschneiden — Werte, Spezifikationen und FPS-Schätzungen für jede Karte.',
+        subtitle: 'Sieh, wie {count} GPUs für Spiele abschneiden — Werte, Spezifikationen und wofür jede Karte am besten geeignet ist.',
         allBrands: 'Alle',
         allTiers: 'Alle Stufen',
         search: 'GPUs suchen...',
@@ -700,7 +702,9 @@ export const translations = {
         vram: 'VRAM',
         tdp: 'TDP',
         launchYear: 'Erscheinungsjahr',
-        tier: 'Stufe'
+        tier: 'Stufe',
+        bestFor: 'Ideal für {res} Gaming',
+        bestForEsports: 'Ideal für Esports'
       },
       cpu: {
         title: 'CPU-Benchmarks - Leistungsrangliste',
@@ -1137,7 +1141,7 @@ export const translations = {
         title: 'Benchmarks GPU - Classement des performances',
         description: 'Compare {count} GPUs classés par performances de jeu.',
         heading: 'Benchmarks GPU',
-        subtitle: 'Vois comment {count} GPUs se classent pour le jeu — scores, spécifications et estimations FPS pour chaque carte.',
+        subtitle: 'Vois comment {count} GPUs se classent pour le jeu — scores, spécifications et à quoi chaque carte convient le mieux.',
         allBrands: 'Toutes',
         allTiers: 'Tous les niveaux',
         search: 'Rechercher GPUs...',
@@ -1154,7 +1158,9 @@ export const translations = {
         vram: 'VRAM',
         tdp: 'TDP',
         launchYear: 'Année de sortie',
-        tier: 'Niveau'
+        tier: 'Niveau',
+        bestFor: 'Idéal pour le gaming {res}',
+        bestForEsports: 'Idéal pour l\'esports'
       },
       cpu: {
         title: 'Benchmarks CPU - Classement des performances',
@@ -1591,7 +1597,7 @@ export const translations = {
         title: 'Benchmarks GPU - Ranking de rendimiento',
         description: 'Compara {count} GPUs clasificadas por rendimiento gaming.',
         heading: 'Benchmarks GPU',
-        subtitle: 'Mira cómo {count} GPUs se clasifican para gaming — puntuaciones, especificaciones y estimaciones FPS para cada tarjeta.',
+        subtitle: 'Mira cómo {count} GPUs se clasifican para gaming — puntuaciones, especificaciones y para qué es mejor cada tarjeta.',
         allBrands: 'Todas',
         allTiers: 'Todos los niveles',
         search: 'Buscar GPUs...',
@@ -1608,7 +1614,9 @@ export const translations = {
         vram: 'VRAM',
         tdp: 'TDP',
         launchYear: 'Año de lanzamiento',
-        tier: 'Nivel'
+        tier: 'Nivel',
+        bestFor: 'Ideal para gaming en {res}',
+        bestForEsports: 'Ideal para esports'
       },
       cpu: {
         title: 'Benchmarks CPU - Ranking de rendimiento',
