@@ -15,7 +15,7 @@ const pathWithoutLocale = path.replace(/^\/[^\/]+/, '') || '/';
 <div class="relative group">
   <button id="lang-btn" class="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-mid-gray hover:text-ink dark:text-dark-mid-gray dark:hover:text-dark-ink rounded-pill transition-colors duration-120 cursor-pointer bg-transparent border-0" aria-label={t('misc.switchLanguage')} aria-expanded="false" aria-controls="lang-menu">
     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-    <span class="hidden sm:inline">{localeLabels[currentLocale] || 'English'}</span>
+    <span class="hidden sm:inline">{localeLabels[currentLocale as keyof typeof localeLabels] || 'English'}</span>
   </button>
   <div id="lang-menu" class="hidden absolute right-0 top-full mt-1 bg-paper dark:bg-dark-paper border border-hairline dark:border-dark-hairline rounded-lg shadow-lg py-1 min-w-[130px] z-50">
     {locales.map(l => {
@@ -23,7 +23,7 @@ const pathWithoutLocale = path.replace(/^\/[^\/]+/, '') || '/';
       const isCurrent = l === currentLocale;
       return (
         <a href={href} class={`block px-3 py-1.5 text-xs no-underline transition-colors duration-120 ${isCurrent ? 'text-ink dark:text-dark-ink font-medium bg-hairline/30 dark:bg-dark-hairline/30' : 'text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink hover:bg-hairline/20 dark:hover:bg-dark-hairline/20'}`} hreflang={l}>
-          {localeLabels[l]} {isCurrent ? '✓' : ''}
+          {localeLabels[l as keyof typeof localeLabels]} {isCurrent ? '✓' : ''}
         </a>
       );
     })}
@@ -32,19 +32,19 @@ const pathWithoutLocale = path.replace(/^\/[^\/]+/, '') || '/';
 
 <script>
 (function() {
-  var btn = document.getElementById('lang-btn');
-  var menu = document.getElementById('lang-menu');
+  var btn = document.getElementById('lang-btn')!;
+  var menu = document.getElementById('lang-menu')!;
   if (!btn || !menu) return;
 
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
     var expanded = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', !expanded);
+    btn.setAttribute('aria-expanded', String(!expanded));
     menu.classList.toggle('hidden');
   });
 
   document.addEventListener('click', function(e) {
-    if (!btn.contains(e.target) && !menu.contains(e.target)) {
+    if (!btn.contains(e.target as Node) && !menu.contains(e.target as Node)) {
       menu.classList.add('hidden');
       btn.setAttribute('aria-expanded', 'false');
     }

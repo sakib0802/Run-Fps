@@ -9,7 +9,7 @@ export async function getStaticPaths() {
 
 const { locale } = Astro.params;
 const { t } = useTranslations(locale);
-const faqs = (translations[locale] || translations.en).faq.items;
+const faqs = (translations[locale as keyof typeof translations] || translations.en).faq.items;
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -62,11 +62,11 @@ const faqSchema = {
 
   <script>
     document.querySelectorAll('.faq-item').forEach(function(item) {
-      var btn = item.querySelector('button');
-      var panel = item.querySelector('.faq-panel');
+      var btn = item.querySelector('button')!;
+      var panel = item.querySelector('.faq-panel')!;
       btn.addEventListener('click', function() {
         var expanded = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', !expanded);
+        btn.setAttribute('aria-expanded', String(!expanded));
         panel.classList.toggle('hidden', expanded);
       });
     });

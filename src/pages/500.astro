@@ -25,14 +25,14 @@ import { Icon } from 'astro-icon/components';
   <script>
   (function() {
     var i18n;
-    try { i18n = JSON.parse(document.getElementById('error-i18n').textContent); } catch(e) { return; }
+    try { i18n = JSON.parse(document.getElementById('error-i18n')!.textContent); } catch(e) { return; }
     var path = window.location.pathname;
     var seg = path.split('/').filter(Boolean);
     var locale = seg.length > 0 && ['en','de','fr','es'].includes(seg[0]) ? seg[0] : 'en';
     var t = i18n[locale] || i18n.en;
     var text = document.getElementById('err-text');
     var retry = document.getElementById('err-retry');
-    var home = document.getElementById('err-home');
+    var home = document.getElementById('err-home') as HTMLAnchorElement | null;
     if (text) text.textContent = t.text;
     if (retry) retry.textContent = t.retry;
     if (home) { home.textContent = t.home; home.href = '/' + locale + '/'; }

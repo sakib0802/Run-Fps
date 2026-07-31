@@ -12,7 +12,7 @@ export interface Props {
 
 const { gameCount, gpuCount, cpuCount, settingsCount, locale } = Astro.props;
 const { t } = useTranslations(locale);
-const p = (path) => `/${locale}${path}`;
+const p = (path: string) => `/${locale}${path}`;
 ---
 
 <div class="hero-accent grid grid-cols-1 lg:grid-cols-2 gap-6 items-center py-8 sm:py-14">
@@ -71,7 +71,7 @@ const p = (path) => `/${locale}${path}`;
 
 <script>
   (function() {
-    var el = document.getElementById('tw');
+    var el = document.getElementById('tw')!;
     if (!el) return;
     var words = ['CS2', 'Valorant', 'Fortnite', 'Warzone', 'Apex', 'Rust', 'Minecraft', 'GTA V', 'PUBG', 'Overwatch', 'R6', 'Dota 2', 'LoL', 'Rocket League', 'Genshin', 'Roblox', 'FIFA', 'Deadlock'];
     var wordIdx = 0, charIdx = 0, isDeleting = false;

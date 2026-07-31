@@ -1,6 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { Icon } from 'astro-icon/components';
 import { useTranslations, locales } from '../../i18n/utils.js';
 import gpusData from '../../data/gpus.json';
 import cpusData from '../../data/cpus.json';
@@ -37,7 +36,7 @@ const ui = {
 ---
 
 <Layout title={t('optimizer.title')} description={t('optimizer.description')}>
-<script is:inline src="/engine.js" type="module"></script>
+<script is:inline src="/engine.js"></script>
 
 <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
   <div class="lg:col-span-2">

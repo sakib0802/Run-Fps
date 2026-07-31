@@ -10,7 +10,7 @@ export interface Props {
 
 const { currentLocale } = Astro.props;
 const { t } = useTranslations(currentLocale);
-const p = (path) => `/${currentLocale}${path}`;
+const p = (path: string) => `/${currentLocale}${path}`;
 ---
 
 <header class="sticky top-0 z-40 bg-paper/80 backdrop-blur-md border-b border-hairline dark:bg-dark-paper/80 dark:border-dark-hairline supports-[backdrop-filter]:bg-paper/80">
@@ -72,22 +72,22 @@ const p = (path) => `/${currentLocale}${path}`;
 
 <script>
 (function() {
-  var btn = document.getElementById('menu-btn');
+  var btn = document.getElementById('menu-btn')!;
   var closeBtn = document.getElementById('menu-close-btn');
-  var menu = document.getElementById('mobile-menu');
-  var overlay = document.getElementById('menu-overlay');
-  var panel = document.getElementById('menu-panel');
-  var openIcon = document.getElementById('menu-icon-open');
-  var closeIcon = document.getElementById('menu-icon-close');
+  var menu = document.getElementById('mobile-menu')!;
+  var overlay = document.getElementById('menu-overlay')!;
+  var panel = document.getElementById('menu-panel')!;
+  var openIcon = document.getElementById('menu-icon-open')!;
+  var closeIcon = document.getElementById('menu-icon-close')!;
 
   if (!btn || !menu || !panel) return;
 
-  var lastFocused = null;
-  function getFocusable(el) {
-    return el.querySelectorAll('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  var lastFocused: HTMLElement | null = null;
+  function getFocusable(el: HTMLElement) {
+    return el.querySelectorAll<HTMLElement>('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
   }
 
-  function trapFocus(e) {
+  function trapFocus(e: KeyboardEvent) {
     var focusable = getFocusable(menu);
     if (focusable.length === 0) return;
     var first = focusable[0];
@@ -102,7 +102,7 @@ const p = (path) => `/${currentLocale}${path}`;
   }
 
   function open() {
-    lastFocused = document.activeElement;
+    lastFocused = document.activeElement as HTMLElement | null;
     menu.classList.remove('hidden');
     requestAnimationFrame(function() {
       overlay.classList.remove('opacity-0', 'pointer-events-none');
@@ -130,7 +130,8 @@ const p = (path) => `/${currentLocale}${path}`;
     closeIcon.classList.add('hidden');
     document.body.style.overflow = '';
     document.removeEventListener('keydown', trapFocus);
-    if (lastFocused) setTimeout(function() { lastFocused.focus(); }, 50);
+    const el = lastFocused;
+    if (el) setTimeout(function() { el.focus(); }, 50);
   }
 
   if (!window._rtHeaderInit) {

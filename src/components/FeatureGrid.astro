@@ -8,7 +8,7 @@ export interface Props {
 
 const { locale } = Astro.props;
 const { t } = useTranslations(locale);
-const p = (path) => `/${locale}${path}`;
+const p = (path: string) => `/${locale}${path}`;
 
 const features = [
   { href: '/calculator', icon: 'lucide:calculator', titleKey: 'home.featureCalcTitle', descKey: 'home.featureCalcDesc' },

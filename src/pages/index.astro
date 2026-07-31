@@ -20,11 +20,11 @@
   <script>
     var locales = { en: 'en', de: 'de', fr: 'fr', es: 'es' };
     var lang = (navigator.language || 'en').split('-')[0];
-    var target = locales[lang] || 'en';
+    var target = locales[lang as keyof typeof locales] || 'en';
     var langs = navigator.languages || [navigator.language || 'en'];
     for (var i = 0; i < langs.length; i++) {
       var code = langs[i].split('-')[0];
-      if (locales[code]) { target = code; break; }
+      if (locales[code as keyof typeof locales]) { target = code; break; }
     }
     window.location.replace('/' + target + '/');
   </script>

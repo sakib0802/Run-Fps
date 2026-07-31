@@ -8,7 +8,7 @@ const allLocales = locales;
 ---
 
 <Layout title={fallback.title} description={fallback.description}>
-<script type="application/json" id="notfound-i18n" set:html={JSON.stringify(Object.fromEntries(locales.map(l => [l, (translations[l] || translations.en).notFound])))}></script>
+<script type="application/json" id="notfound-i18n" set:html={JSON.stringify(Object.fromEntries(locales.map(l => [l, (translations[l as keyof typeof translations] || translations.en).notFound])))}></script>
 <script type="application/json" id="notfound-locales" set:html={JSON.stringify(locales)}></script>
   <div class="flex flex-col items-center justify-center py-16 sm:py-24 text-center">
     <div class="w-16 h-16 rounded-full bg-ember/10 flex items-center justify-center mb-4">
@@ -31,15 +31,15 @@ const allLocales = locales;
   <script>
   (function() {
     var i18n;
-    try { i18n = JSON.parse(document.getElementById('notfound-i18n').textContent); } catch(e) { return; }
+    try { i18n = JSON.parse(document.getElementById('notfound-i18n')!.textContent); } catch(e) { return; }
     var path = window.location.pathname;
     var seg = path.split('/').filter(Boolean);
     var locale = seg.length > 0 && ['en','de','fr','es'].includes(seg[0]) ? seg[0] : 'en';
     var t = i18n[locale] || i18n.en;
     var heading = document.getElementById('nf-heading');
     var text = document.getElementById('nf-text');
-    var homeLink = document.getElementById('nf-home');
-    var fpsLink = document.getElementById('nf-fps');
+    var homeLink = document.getElementById('nf-home') as HTMLAnchorElement | null;
+    var fpsLink = document.getElementById('nf-fps') as HTMLAnchorElement | null;
     var langLabel = document.getElementById('nf-lang-label');
     if (heading) heading.textContent = t.heading;
     if (text) text.textContent = t.text;
@@ -47,7 +47,7 @@ const allLocales = locales;
     if (fpsLink) { fpsLink.textContent = t.checkFps; fpsLink.href = '/' + locale + '/calculator'; }
     if (langLabel) {
       var labels = { en: 'Also available in:', de: 'Auch verfügbar auf:', fr: 'Aussi disponible en:', es: 'También disponible en:' };
-      langLabel.textContent = labels[locale] || labels.en;
+      langLabel.textContent = labels[locale as keyof typeof labels] || labels.en;
     }
   })();
   </script>

@@ -23,7 +23,7 @@ const topGames = games.slice(0, 8);
 ---
 
 <Layout title={`${cpu.name} - ${t('benchmarks.cpu.title')}`} description={`${cpu.name} ${t('misc.estimatedFps')} ${topGames.length} games.`}>
-<script is:inline src="/engine.js" type="module"></script>
+<script is:inline src="/engine.js"></script>
 
 <script type="application/json" id="cpu-data" set:html={JSON.stringify(cpu)}></script>
 <script type="application/json" id="gpus-data" set:html={JSON.stringify(topGpus)}></script>
@@ -90,14 +90,13 @@ const topGames = games.slice(0, 8);
 
 <script>
 (async function() {
-  const cpu = JSON.parse(document.getElementById('cpu-data').textContent);
-  const gpus = JSON.parse(document.getElementById('gpus-data').textContent);
-  const games = JSON.parse(document.getElementById('games-data').textContent);
+  const cpu = JSON.parse(document.getElementById('cpu-data')!.textContent ?? '');
+  const gpus: any[] = JSON.parse(document.getElementById('gpus-data')!.textContent ?? '');
+  const games: any[] = JSON.parse(document.getElementById('games-data')!.textContent ?? '');
   const engine = window.RunFpsEngine;
   if (!engine) return;
   const config = { ramCapacity: 16, ramType: 'ddr5', ramSpeed: 6000, ramChannel: 'dual', storage: 'nvme', resolution: '1080p', preset: 'high', rtEnabled: false, upscaling: 'none', resolutionScale: 100, frameCap: 0, monitorHz: 144, vramLimit: 0, os: 'windows' };
-  const refGpu = { id: 'rtx-4090', name: 'RTX 4090', brand: 'nvidia', score: 96, vram: 24 };
-  const body = document.getElementById('fps-body');
+  const body = document.getElementById('fps-body')!;
   body.innerHTML = games.map(game => {
     const f = gpus.map(g => {
       const result = engine.calculateFPS(config, game, g, cpu);

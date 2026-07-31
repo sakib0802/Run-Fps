@@ -8,7 +8,7 @@ export interface Props {
 
 const { currentLocale } = Astro.props;
 const { t } = useTranslations(currentLocale);
-const p = (path) => `/${currentLocale}${path}`;
+const p = (path: string) => `/${currentLocale}${path}`;
 const pathWithoutLocale = Astro.url.pathname.replace(/^\/[^\/]+/, '') || '/';
 ---
 
@@ -40,7 +40,7 @@ const pathWithoutLocale = Astro.url.pathname.replace(/^\/[^\/]+/, '') || '/';
             const href = `/${l}${pathWithoutLocale}`;
             const isCurrent = l === currentLocale;
             return (
-              <li><a href={href} class={`block py-2 sm:py-0.5 text-sm no-underline transition-colors duration-120 ${isCurrent ? 'text-ink dark:text-dark-ink font-medium' : 'text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink'}`} hreflang={l}>{localeLabels[l]}</a></li>
+              <li><a href={href} class={`block py-2 sm:py-0.5 text-sm no-underline transition-colors duration-120 ${isCurrent ? 'text-ink dark:text-dark-ink font-medium' : 'text-mid-gray dark:text-dark-mid-gray hover:text-ink dark:hover:text-dark-ink'}`} hreflang={l}>{localeLabels[l as keyof typeof localeLabels]}</a></li>
             );
           })}
         </ul>

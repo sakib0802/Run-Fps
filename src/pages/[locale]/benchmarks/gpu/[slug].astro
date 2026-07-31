@@ -21,7 +21,7 @@ const topGames = games.slice(0, 10);
 ---
 
 <Layout title={`${gpu.name} - ${t('benchmarks.gpu.title')}`} description={`${gpu.name} ${t('misc.estimatedFps')} ${topGames.length} games.`}>
-<script is:inline src="/engine.js" type="module"></script>
+<script is:inline src="/engine.js"></script>
 
 <script type="application/json" id="games-data" set:html={JSON.stringify(topGames)}></script>
 <script type="application/json" id="gpu-data" set:html={JSON.stringify(gpu)}></script>
@@ -97,20 +97,19 @@ const topGames = games.slice(0, 10);
 
 <script>
 (async function() {
-  const gpu = JSON.parse(document.getElementById('gpu-data').textContent);
-  const games = JSON.parse(document.getElementById('games-data').textContent);
+  const gpu = JSON.parse(document.getElementById('gpu-data')!.textContent ?? '');
+  const games: any[] = JSON.parse(document.getElementById('games-data')!.textContent ?? '');
   const engine = window.RunFpsEngine;
   if (!engine) return;
   const config = { ramCapacity: 16, ramType: 'ddr5', ramSpeed: 6000, ramChannel: 'dual', storage: 'nvme', resolution: '1080p', preset: 'high', rtEnabled: false, upscaling: 'none', resolutionScale: 100, frameCap: 0, monitorHz: 144, vramLimit: 0, os: 'windows' };
   const refCpu = { id: 'ryzen-7-7800x3d', name: 'Ryzen 7 7800X3D', brand: 'amd', score: 92 };
   games.forEach((game, i) => {
     const resolutions = ['1080p', '1440p', '4K'];
-    const scales = { '1080p': 1.0, '1440p': 0.72, '4K': 0.45 };
     resolutions.forEach(res => {
       const cfg = { ...config, resolution: res };
       const result = engine.calculateFPS(cfg, game, gpu, refCpu);
       const el = document.getElementById('fps-' + res.replace('p', '') + '-' + i);
-      if (el) el.textContent = result.avgFps;
+      if (el) el.textContent = String(result.avgFps);
     });
   });
 })();

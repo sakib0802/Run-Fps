@@ -147,7 +147,7 @@ const htmlLang = currentLocale;
       (function() {
         var bait = document.getElementById('ad-bait');
         if (bait && !bait.offsetHeight) {
-          var notice = document.getElementById('adblock-notice');
+          var notice = document.getElementById('adblock-notice')!;
           if (notice) {
             setTimeout(function() { notice.classList.remove('translate-y-full'); }, 1000);
             document.getElementById('adblock-dismiss')?.addEventListener('click', function() {
