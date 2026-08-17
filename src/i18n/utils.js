@@ -1,6 +1,6 @@
 import { locales, localeLabels, t } from './translations.js';
 
-export { locales, localeLabels, t };
+export { locales, t };
 
 export function useTranslations(locale) {
   const l = locales.includes(locale) ? locale : 'en';
@@ -11,7 +11,7 @@ export function useTranslations(locale) {
   };
 }
 
-export function getLocaleFromUrl(url) {
+function getLocaleFromUrl(url) {
   const segments = url.pathname.split('/').filter(Boolean);
   const first = segments[0] || '';
   return locales.includes(first) ? first : 'en';

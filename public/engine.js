@@ -63,7 +63,7 @@ export function calculateFPS(config, game, gpu, cpu) {
 }
 
 export function catmullRomInterpolate(point, curve) {
-  const sorted = [...curve].sort((a, b) => a.gpuScore - b.gpuScore);
+  const sorted = curve.toSorted((a, b) => a.gpuScore - b.gpuScore);
   if (point <= sorted[0].gpuScore) return sorted[0].fps;
   if (point >= sorted[sorted.length - 1].gpuScore) return sorted[sorted.length - 1].fps;
   let i = 0;
@@ -126,7 +126,7 @@ export function calculateBottleneck(cpu, gpu, game, resolution) {
   return { cpuLoad: cpuPct, gpuLoad: gpuPct, bottleneckPercent: bottleneckPct, bottleneckType: type };
 }
 
-export function optimizeSettings(currentFps, targetFps, game, result) {
+export function optimizeSettings(currentFps, targetFps, game) {
   if (currentFps >= targetFps) return { canReach: true, changes: [], finalFps: currentFps };
   const changes = [];
   let fps = currentFps;

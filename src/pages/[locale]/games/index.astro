@@ -57,8 +57,20 @@ const ui = {
 <script is:inline type="application/json" id="games-i18n" set:html={JSON.stringify(ui)}></script>
 
 <script type="module">
-const ui = JSON.parse(document.getElementById('games-i18n').textContent);
-const { genreLabels, genreColors } = JSON.parse(document.getElementById('genre-data').textContent);
+function safeParse(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+const ui = safeParse(document.getElementById('games-i18n').textContent);
+if (!ui) throw new Error('Failed to parse games-i18n');
+const { genreLabels, genreColors } = safeParse(document.getElementById('genre-data').textContent);
+if (!genreLabels || !genreColors) throw new Error('Failed to parse genre-data');
+
+const genreSet = new Set(['action','battle-royale','competitive-fps','horror','indie','mmo','moba','open-world','racing','rpg','sandbox','simulation','strategy','survival']);
 
 let games = [];
 let activeGenre = "all";
@@ -104,7 +116,7 @@ function renderGames() {
         <span class="shrink-0 text-xs font-mono text-mid-gray dark:text-dark-mid-gray">${g.releaseYear}</span>
       </div>
       <div class="mt-1.5 flex items-center gap-1.5 flex-wrap">
-        <span class="badge${['action','battle-royale','competitive-fps','horror','indie','mmo','moba','open-world','racing','rpg','sandbox','simulation','strategy','survival'].includes(g.genre)?` badge-${g.genre}`:''}" ${['action','battle-royale','competitive-fps','horror','indie','mmo','moba','open-world','racing','rpg','sandbox','simulation','strategy','survival'].includes(g.genre)?'':`style="background:${genreColors[g.genre] || '#737373'}20;color:${genreColors[g.genre] || '#737373'};border:1px solid ${genreColors[g.genre] || '#737373'}40"`}>${genreLabels[g.genre] || g.genre}</span>
+        <span class="badge${genreSet.has(g.genre)?` badge-${g.genre}`:''}" ${genreSet.has(g.genre)?'':`style="background:${genreColors[g.genre] || '#737373'}20;color:${genreColors[g.genre] || '#737373'};border:1px solid ${genreColors[g.genre] || '#737373'}40"`}>${genreLabels[g.genre] || g.genre}</span>
         ${g.steamDeck ? '<span class="badge bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">SD</span>' : ''}
         <span class="badge ${g.optimizationTier === 'light' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : g.optimizationTier === 'medium' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'} capitalize">${g.optimizationTier}</span>
       </div>

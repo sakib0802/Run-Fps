@@ -156,11 +156,12 @@ function setupFilteredSelect(inputId, selectId, items, labelKey) {
     const query = input.value;
     const selectedValue = select.value;
 
-    select.innerHTML = items
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => fuzzyMatch(item[labelKey], query))
-      .map(({ item, index }) => `<option value="${index}">${item[labelKey]}</option>`)
-      .join('');
+    select.innerHTML = items.reduce((acc, item, index) => {
+      if (fuzzyMatch(item[labelKey], query)) {
+        return acc + `<option value="${index}">${item[labelKey]}</option>`;
+      }
+      return acc;
+    }, '')
 
     if (selectedValue && items[parseInt(selectedValue, 10)]) {
       const stillVisible = [...select.options].some(o => o.value === selectedValue);
@@ -252,7 +253,7 @@ function optimize() {
   const progress = Math.min(100, (currentFps / targetFps) * 100);
   $('fps-progress').style.width = `${progress}%`;
 
-  const opt = window.RunFpsEngine.optimizeSettings(currentFps, targetFps, game, result);
+  const opt = window.RunFpsEngine.optimizeSettings(currentFps, targetFps, game);
   const changes = opt.changes;
   if (!changes || changes.length === 0) {
     $('optimizer-verdict').textContent = i18n.cannotReach;

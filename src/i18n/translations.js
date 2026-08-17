@@ -48,7 +48,7 @@ export const translations = {
       privacyPolicy: 'Privacy Policy',
       termsOfService: 'Terms of Service',
       contactUs: 'Contact Us',
-      disclaimer: '&copy; {year} RunFps. All game names, logos, and images are trademarks of their respective owners. RunFps is not affiliated with any game publisher or hardware manufacturer. FPS estimates are approximate and may vary by &plusmn;10-15% depending on system configuration. As an Amazon Associate we earn from qualifying purchases.',
+      disclaimer: '&copy; {year} RunFps. Game names, logos and images are trademarks of their respective owners. RunFps is not affiliated with any game publisher or hardware manufacturer. FPS estimates are approximate — actual performance varies by system.',
       language: 'Language'
     },
     home: {

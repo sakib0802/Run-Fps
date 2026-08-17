@@ -301,11 +301,12 @@ function setupFilteredSelect(inputId, selectId, items, labelKey) {
     const query = input.value;
     const selectedValue = select.value;
 
-    select.innerHTML = items
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => fuzzyMatch(item[labelKey], query))
-      .map(({ item, index }) => `<option value="${index}">${item[labelKey]}</option>`)
-      .join('');
+    select.innerHTML = items.reduce((acc, item, index) => {
+      if (fuzzyMatch(item[labelKey], query)) {
+        return acc + `<option value="${index}">${item[labelKey]}</option>`;
+      }
+      return acc;
+    }, '')
 
     if (selectedValue && items[parseInt(selectedValue, 10)]) {
       const stillVisible = [...select.options].some(o => o.value === selectedValue);
@@ -342,12 +343,12 @@ function pickUpgrades(current, pool, counterpart, count = 3) {
   const inBand = pool
     .filter(p => scoreBand(p.score) === targetBand && p.score > current.score)
     .sort((a, b) => b.score - a.score);
-  const picks = inBand.filter(p => p.score <= cap);
+  const picks = new Set(inBand.filter(p => p.score <= cap));
   for (const p of inBand) {
-    if (picks.length >= count) break;
-    if (!picks.includes(p)) picks.push(p);
+    if (picks.size >= count) break;
+    if (!picks.has(p)) picks.add(p);
   }
-  return picks.slice(0, count);
+  return Array.from(picks).slice(0, count);
 }
 
 let gpus = [], cpus = [], games = [];

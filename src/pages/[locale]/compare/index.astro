@@ -13,8 +13,8 @@ export async function getStaticPaths() {
 const { locale } = Astro.params;
 const { t } = useTranslations(locale);
 
-const sortedGpus = [...gpus].sort((a, b) => b.score - a.score);
-const sortedCpus = [...cpus].sort((a, b) => b.score - a.score);
+const sortedGpus = gpus.toSorted((a, b) => b.score - a.score);
+const sortedCpus = cpus.toSorted((a, b) => b.score - a.score);
 const topGames = games.slice(0, 10);
 const refCpu = { id: 'ryzen-7-7800x3d', name: 'Ryzen 7 7800X3D', brand: 'amd', score: 92 };
 const refGpu = { id: 'rtx-4090', name: 'RTX 4090', brand: 'nvidia', score: 96, vram: 24 };

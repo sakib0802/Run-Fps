@@ -9,7 +9,7 @@ import { cpus } from '../../data/cpus.json';
 import { genreLabels } from '../../data/genres.js';
 function catmullRomInterpolate(point: number, curve: { gpuScore: number; fps: number }[]) {
   if (!curve || curve.length === 0) return 0;
-  const sorted = [...curve].sort((a, b) => a.gpuScore - b.gpuScore);
+  const sorted = curve.toSorted((a, b) => a.gpuScore - b.gpuScore);
   if (point <= sorted[0].gpuScore) return sorted[0].fps;
   if (point >= sorted[sorted.length - 1].gpuScore) return sorted[sorted.length - 1].fps;
   let i = 0;

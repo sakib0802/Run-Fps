@@ -110,8 +110,10 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .reduce((acc, name) => {
+            if (name !== CACHE_NAME) return acc.then(() => caches.delete(name));
+            return acc;
+          }, Promise.resolve())
       );
     }).then(() => self.clients.claim())
   );
